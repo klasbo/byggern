@@ -1,0 +1,5 @@
+Ex 2:
+masking external memory:
+    set_bit(MCUCR   //MCU control register
+        XMM2, 1     // Ext. memory high mask to 4 bits (p.32)
+    );
