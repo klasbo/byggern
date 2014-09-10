@@ -6,6 +6,9 @@
 #include <stdlib.h>
 
 #include "drivers/uart.h"
+#include "drivers/adc.h"
+#include "drivers/joystick.h"
+#include "drivers/slider.h"
 
 void SRAM_test(void);
 
@@ -49,8 +52,23 @@ int main(void)
     
     MCUCR |= (1 << XMM2) | (1 << SRE);
     
-    
+    DDRB = ~0x3;
     SRAM_test();
+    JOY_setNewCenter();
+    JOY_pos_t pos;
+    SLI_pos_t s;
+    
+    while(1){
+        s = SLI_getSliderPosition();
+        printf("Slider: (Left:%d, Right:%d)\n", s.L, s.R);
+        printf("PINB %d\n", PINB);
+        pos = JOY_getPosition();
+        printf("pos_x: %d    pos_y: %d\n", pos.x, pos.y);
+        printf("Joy dirn: %d\n", JOY_getDirection());
+        printf("\n\n");
+        _delay_ms(750);
+    }
+    
 
     
 }
@@ -81,3 +99,4 @@ void SRAM_test(void)
     }
     printf("SRAM test completed with %d errors in write phase and %d errors in read phase\r\n", werrors, rerrors);
 }
+

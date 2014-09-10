@@ -41,7 +41,7 @@
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
         <InterfaceProperties>
-          <JtagDbgClock>113160</JtagDbgClock>
+          <JtagDbgClock>200000</JtagDbgClock>
         </InterfaceProperties>
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
@@ -109,6 +109,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="byggern.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\adc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\adc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\joystick.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\joystick.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\slider.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\slider.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\uart.c">
