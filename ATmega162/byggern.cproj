@@ -117,10 +117,22 @@
     <Compile Include="drivers\adc.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\font.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\joystick.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\joystick.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\menu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\oled.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\oled.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\slider.c">

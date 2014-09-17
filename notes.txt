@@ -1,5 +1,2 @@
-Ex 2:
-masking external memory:
-    set_bit(MCUCR   //MCU control register
-        XMM2, 1     // Ext. memory high mask to 4 bits (p.32)
-    );
+Ex 4:
+	WR pulse width on 162: SRWn1, SRWn0 (p272)

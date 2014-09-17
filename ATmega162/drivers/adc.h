@@ -10,8 +10,8 @@
 #define ADC_H_
 
 typedef enum{
-    JOY_Y       = 4,
-    JOY_X       = 5,
+    JOY_X       = 4,
+    JOY_Y       = 5,
     SLIDER_L    = 6,
     SLIDER_R    = 7
 } ADC_channel;

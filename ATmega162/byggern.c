@@ -9,6 +9,10 @@
 #include "drivers/adc.h"
 #include "drivers/joystick.h"
 #include "drivers/slider.h"
+#include "drivers/oled.h"
+
+#include <avr/pgmspace.h>
+//#include "drivers/font.h"
 
 void SRAM_test(void);
 
@@ -57,6 +61,15 @@ int main(void)
     JOY_setNewCenter();
     JOY_pos_t pos;
     SLI_pos_t s;
+    OLED_init();
+    OLED_go_to_column(5);
+    OLED_go_to_line(2);
+    int c = 0;
+    
+    //extern unsigned const char PROGMEM font[95][8];
+    //printf("%d\n", pgm_read_byte(&font[c-' '][0]));
+    
+    OLED_reset();
     
     while(1){
         s = SLI_getSliderPosition();
@@ -66,10 +79,15 @@ int main(void)
         printf("pos_x: %d    pos_y: %d\n", pos.x, pos.y);
         printf("Joy dirn: %d\n", JOY_getDirection());
         printf("\n\n");
-        _delay_ms(750);
+        _delay_ms(1000);
+        OLED_printf(
+            "hello world\n"
+            " iteration %d\n", c++
+        );
     }
     
-
+    
+ 
     
 }
 
