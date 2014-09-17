@@ -1,13 +1,5 @@
-/*
- * joystick.h
- *
- * Created: 10.09.2014 13:33:51
- *  Author: adelaidm
- */ 
 
-
-#ifndef JOYSTICK_H_
-#define JOYSTICK_H_
+#pragma once
 
 typedef struct {
     int x;
@@ -23,15 +15,10 @@ typedef enum {
 } JOY_dir_t;
 
 
-void JOY_init();
-
 void JOY_setNewCenter(void);
-
-int Joy_button(int buttton);
 
 JOY_pos_t JOY_getPosition();
 
 JOY_dir_t JOY_getDirection();
 
-
-#endif /* JOYSTICK_H_ */
+// TODO: Joystick button. Make part of getDirection (PRESSED)?

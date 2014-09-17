@@ -1,13 +1,5 @@
-/*
- * font.h
- *
- * Created: 17.09.2014 12:16:24
- *  Author: adelaidm
- */ 
 
-
-#ifndef FONT_H_
-#define FONT_H_
+#pragma once
 
 #define FONT_HEIGHT 8
 #define FONT_WIDTH 8
@@ -110,6 +102,3 @@ unsigned const char PROGMEM font[95][8] = {
    {0b00000010,0b00000011,0b00000001,0b00000011,0b00000010,0b00000011,0b00000001,0b00000000}, // ~
 };        
 
-
-
-#endif /* FONT_H_ */

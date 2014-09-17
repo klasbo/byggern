@@ -11,89 +11,48 @@
 #include "drivers/slider.h"
 #include "drivers/oled.h"
 
-#include <avr/pgmspace.h>
-//#include "drivers/font.h"
-
 void SRAM_test(void);
 
-int main(void)
-{
-    /*test1
-    DDRB = 0x1;
-    while(1)
-    {
-        
-        PORTB |= (1<<PB0); 
-        _delay_ms(2000);
-        PORTB &= ~(1<<PB0);
-        _delay_ms(2000);
-        
-    }
-    */
-    
-    /*    test2
-    UART_init(31); //lol magic (FOSC/16/BAUD-1)
-    fdevopen(&UART_transmit, &UART_receive);
-
-
-    int i = 0;
-    int j;
-
-    while(1){
-        // UART_transmit(UART_receive());
-
-        
-        scanf("%d", &j);
-        i += j;
-        printf("i = %d\n", i);
-        
-    }
-    */
-    
+int main(void){
     
     UART_init(31); //lol magic (FOSC/16/BAUD-1)
     fdevopen(&UART_transmit, &UART_receive);
     
-    MCUCR |= (1 << XMM2) | (1 << SRE);
+    MCUCR |= (1 << XMM2) | (1 << SRE);  // TODO: Move to memory_layout.h (external memory mask, external memory enable)
     
-    DDRB = ~0x3;
+    DDRB = ~0x3;    // TODO: move to drivers/slider.h (?) (touch buttons)
+    
+    
     SRAM_test();
+    
     JOY_setNewCenter();
-    JOY_pos_t pos;
-    SLI_pos_t s;
+    JOY_pos_t joy_pos;
+    SLI_pos_t sli_pos;
+    
     OLED_init();
-    OLED_go_to_column(5);
-    OLED_go_to_line(2);
+    
     int c = 0;
     
-    //extern unsigned const char PROGMEM font[95][8];
-    //printf("%d\n", pgm_read_byte(&font[c-' '][0]));
-    
-    OLED_reset();
-    
     while(1){
-        s = SLI_getSliderPosition();
-        printf("Slider: (Left:%d, Right:%d)\n", s.L, s.R);
+        sli_pos = SLI_getSliderPosition();
+        printf("Slider: (Left:%d, Right:%d)\n", sli_pos.L, sli_pos.R);
         printf("PINB %d\n", PINB);
-        pos = JOY_getPosition();
-        printf("pos_x: %d    pos_y: %d\n", pos.x, pos.y);
+        joy_pos = JOY_getPosition();
+        printf("pos_x: %d    pos_y: %d\n", joy_pos.x, joy_pos.y);
         printf("Joy dirn: %d\n", JOY_getDirection());
         printf("\n\n");
-        _delay_ms(1000);
+        
         OLED_printf(
             "hello world\n"
             " iteration %d\n", c++
         );
+                
+        _delay_ms(1000);
     }
-    
-    
- 
-    
 }
 
 
-void SRAM_test(void)
-{
+void SRAM_test(void){
     volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
     unsigned int i, werrors, rerrors;
     werrors = 0;

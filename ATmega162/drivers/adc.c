@@ -10,7 +10,7 @@
 #include <util/delay.h>
 
 
-char ADC_read(ADC_channel ch){
+uint8_t ADC_read(ADC_channel ch){
     volatile char* ext_adc = (char*) 0x1400; // Start address for the ADC
     
     ext_adc[1] = ch;

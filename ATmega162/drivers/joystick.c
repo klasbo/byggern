@@ -1,56 +1,36 @@
-/*
- * joystick.c
- *
- * Created: 10.09.2014 13:33:35
- *  Author: adelaidm
- */ 
-
 
 #include "joystick.h"
 #include "adc.h"
 
 #define DIR_THRESHOLD 20
 
-static int center_x;
-static int center_y;
+static uint8_t center_x;
+static uint8_t center_y;
 
 
 void JOY_setNewCenter(void){
     center_x = ADC_read(JOY_X);
     center_y = ADC_read(JOY_Y);
-    return;
-    
 };
 
 JOY_pos_t JOY_getPosition(void){
-    unsigned int x_pos_u = ADC_read(JOY_X);
-    unsigned int y_pos_u = ADC_read(JOY_Y);
-    int x_pos;
-    int y_pos;
-    //if the ADC reads a larger number than the range of an unsigned int
-    // you subtract 127 first and then typecast to signed int
+
+    uint8_t x_pos_u = ADC_read(JOY_X);
+    uint8_t y_pos_u = ADC_read(JOY_Y);
     
-    if(x_pos_u>127){
-        x_pos_u -=  127;
-        x_pos   =   (signed int)x_pos_u;
-    }
-    else{
-        x_pos   =   (signed int)x_pos_u;
-        x_pos   -=  127;
-    }
-    if(y_pos_u>127){
-        y_pos_u -=  127;
-        y_pos   =   (signed int)y_pos_u;
-    }
-    else{
-        y_pos   =   (signed int)y_pos_u;
-        y_pos   -=  127;
-    }
+    #define saturated_subtract(result, a, b) \
+        int8_t result = \
+            b > 128 && (uint8_t)(127 + b)  >=  a    ?   -128    : \
+            b < 128 && (uint8_t)(128 + b)  <=  a    ?   127     : \
+                                                        (int8_t)(a - b);
+                                                            
+    saturated_subtract(x_pos, x_pos_u, center_x)
+    saturated_subtract(y_pos, y_pos_u, center_y)
     
     return (JOY_pos_t){
-            .x = x_pos + (127 - center_x),
-            .y = y_pos + (127 - center_y)
-        };
+        .x = x_pos,
+        .y = y_pos
+    };
 };
 
 

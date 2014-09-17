@@ -1,13 +1,5 @@
-/*
- * adc.h
- *
- * Created: 10.09.2014 13:39:23
- *  Author: adelaidm
- */ 
 
-
-#ifndef ADC_H_
-#define ADC_H_
+#pragma once
 
 typedef enum{
     JOY_X       = 4,
@@ -16,8 +8,5 @@ typedef enum{
     SLIDER_R    = 7
 } ADC_channel;
 
-char ADC_read(ADC_channel channel);
+uint8_t ADC_read(ADC_channel channel);
 
-
-
-#endif /* ADC_H_ */
