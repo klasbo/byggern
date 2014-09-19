@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 typedef enum{
     JOY_X       = 4,
     JOY_Y       = 5,

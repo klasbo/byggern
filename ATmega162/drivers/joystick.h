@@ -15,10 +15,10 @@ typedef enum {
 } JOY_dir_t;
 
 
-void JOY_setNewCenter(void);
+void JOY_set_new_center(void);
 
-JOY_pos_t JOY_getPosition();
+JOY_pos_t JOY_get_position(void);
 
-JOY_dir_t JOY_getDirection();
+JOY_dir_t JOY_get_direction(void);
 
-// TODO: Joystick button. Make part of getDirection (PRESSED)?
+// TODO: Joystick button. Make part of get_direction (PRESSED)?

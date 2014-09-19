@@ -1,19 +1,19 @@
-/*
- * adc.c
- *
- * Created: 10.09.2014 13:39:35
- *  Author: adelaidm
- */ 
-#define F_CPU 4195200
+
+//#include "../config.h"
+//#include <util/delay.h>
+#include <avr/io.h>
 
 #include "adc.h"
-#include <util/delay.h>
+#include "memory_layout.h"
 
+void __attribute__ ((constructor)) adc_init(void){    
+    DDRB &= ~(1<<DDB2);
+}    
 
 uint8_t ADC_read(ADC_channel ch){
-    volatile char* ext_adc = (char*) 0x1400; // Start address for the ADC
     
     ext_adc[1] = ch;
-    _delay_us(50);
+    //_delay_us(40);
+    while(PINB & (1<<PINB2)){}
     return ext_adc[0];
 }

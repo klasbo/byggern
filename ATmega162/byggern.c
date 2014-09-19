@@ -1,4 +1,5 @@
-#define F_CPU 4195200
+
+#include "config.h"
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -10,38 +11,33 @@
 #include "drivers/joystick.h"
 #include "drivers/slider.h"
 #include "drivers/oled.h"
+#include "drivers/memory_layout.h"
 
 void SRAM_test(void);
 
 int main(void){
     
-    UART_init(31); //lol magic (FOSC/16/BAUD-1)
     fdevopen(&UART_transmit, &UART_receive);
-    
-    MCUCR |= (1 << XMM2) | (1 << SRE);  // TODO: Move to memory_layout.h (external memory mask, external memory enable)
-    
-    DDRB = ~0x3;    // TODO: move to drivers/slider.h (?) (touch buttons)
-    
     
     SRAM_test();
     
-    JOY_setNewCenter();
+    JOY_set_new_center();
     JOY_pos_t joy_pos;
     SLI_pos_t sli_pos;
-    
-    OLED_init();
     
     int c = 0;
     
     while(1){
-        sli_pos = SLI_getSliderPosition();
-        printf("Slider: (Left:%d, Right:%d)\n", sli_pos.L, sli_pos.R);
-        printf("PINB %d\n", PINB);
-        joy_pos = JOY_getPosition();
-        printf("pos_x: %d    pos_y: %d\n", joy_pos.x, joy_pos.y);
-        printf("Joy dirn: %d\n", JOY_getDirection());
-        printf("\n\n");
         
+        sli_pos = SLI_get_slider_position();
+        printf("Slider position: (Left:%d, Right:%d)\n", sli_pos.L, sli_pos.R);
+        printf("Slider buttons:  (%s, %s)\n", (SLI_get_left_button() ? "LEFT" : "Left"), (SLI_get_right_button() ? "RIGHT" : "Right") );
+        joy_pos = JOY_get_position();
+        printf("pos_x: %4d  |  pos_y: %4d\n", joy_pos.x, joy_pos.y);
+        printf("Joy dirn: %d\n", JOY_get_direction());
+        
+                
+        printf("\n\n");
         OLED_printf(
             "hello world\n"
             " iteration %d\n", c++
@@ -53,7 +49,6 @@ int main(void){
 
 
 void SRAM_test(void){
-    volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
     unsigned int i, werrors, rerrors;
     werrors = 0;
     rerrors = 0;

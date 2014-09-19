@@ -5,17 +5,17 @@
 
 #include "oled.h"
 #include "font.h"
+#include "memory_layout.h"
 
+#define NUM_CHARS_PER_LINE      (COLUMNS / FONT_WIDTH)
 
 static int line_number;
 static int colum_number;
 
-static volatile char* oled_cmd  = (char*)0x1000;
-static volatile char* oled_data = (char*)0x1200;
 
 static char buf[NUM_CHARS_PER_LINE * PAGES];    // used as internal buffer for OLED_printf
 
-void OLED_init(){
+void __attribute__ ((constructor)) OLED_init(void){
     OLED_write_cmd(OLED_POWER_OFF);
 
     OLED_write_cmd(OLED_SEGMENT_REMAP_END);
@@ -90,7 +90,7 @@ void OLED_go_to_column(int column){
 
 void OLED_print(char* s){
     for(; *s!= '\0'; s++){
-        if(*s == '\n'){
+        if(*s == '\n'){     // BUG: does not clear the rest of the line!
             line_number = (line_number + 1) % FONT_HEIGHT;
             OLED_go_to_line(line_number);
             OLED_go_to_column(0);
@@ -112,19 +112,19 @@ void OLED_printf(char* fmt, ...){
 void OLED_clear_line(int line){
     OLED_go_to_line(line);
     for(int i = 0; i < COLUMNS; i++){
-        *oled_data = 0;
+        *ext_oled_data = 0;
     }
 }
 
 
 void OLED_write_cmd(char c){
-    *oled_cmd = c;
+    *ext_oled_cmd = c;
 }
 
 
 void OLED_write_char(char c){
     for (int i = 0; i < FONT_WIDTH; i++){
-        *oled_data = pgm_read_byte(&font[c-' '][i]);
+        *ext_oled_data = pgm_read_byte(&font[c-' '][i]);
     }
 }
 

@@ -111,6 +111,9 @@
     <Compile Include="byggern.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="config.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\adc.c">
       <SubType>compile</SubType>
     </Compile>
@@ -126,7 +129,10 @@
     <Compile Include="drivers\joystick.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\menu.h">
+    <Compile Include="drivers\memory_layout.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\memory_layout.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\oled.c">

@@ -6,7 +6,6 @@
 #define COLUMNS                 128
 #define PAGES                   8
 #define PAGE_WIDTH              (ROWS/8)
-#define NUM_CHARS_PER_LINE      (COLUMNS / FONT_WIDTH)
 #define MAX_PAGE                (PAGES - 1)
 #define MAX_COL                 (COLUMNS - 1)
 
@@ -92,7 +91,6 @@
 
 
 
-void OLED_init(void);
 void OLED_reset(void);
 
 void OLED_go_to_line(int line);

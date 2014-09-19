@@ -8,12 +8,12 @@ static uint8_t center_x;
 static uint8_t center_y;
 
 
-void JOY_setNewCenter(void){
+void JOY_set_new_center(void){
     center_x = ADC_read(JOY_X);
     center_y = ADC_read(JOY_Y);
 };
 
-JOY_pos_t JOY_getPosition(void){
+JOY_pos_t JOY_get_position(void){
 
     uint8_t x_pos_u = ADC_read(JOY_X);
     uint8_t y_pos_u = ADC_read(JOY_Y);
@@ -34,8 +34,8 @@ JOY_pos_t JOY_getPosition(void){
 };
 
 
-JOY_dir_t JOY_getDirection(void){
-    JOY_pos_t pos = JOY_getPosition();
+JOY_dir_t JOY_get_direction(void){
+    JOY_pos_t pos = JOY_get_position();
         
     return
     pos.x >  DIR_THRESHOLD  ? RIGHT  :
