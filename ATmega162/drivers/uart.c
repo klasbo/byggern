@@ -1,5 +1,6 @@
 
 #include <avr/io.h>
+#include <stdio.h>
 
 #include "uart.h"
 #include "../config.h"
@@ -16,6 +17,9 @@ void __attribute__ ((constructor)) uart_init(void){
 
     UCSR0C =    (1<<URSEL0)     // use UCSRC on I/O (as opposed to baud rate register high byte (UBBRH))
             |   (3<<UCSZ00);    // char size to 8
+
+
+    fdevopen((int (*)(char, struct __file*))&UART_transmit, (int (*)(struct __file*))&UART_receive);
 }
 
 char UART_receive(void){

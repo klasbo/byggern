@@ -89,7 +89,7 @@
 #define OLED_COM_SCAN_DIR_NORMAL            0xC0
 #define OLED_COM_SCAN_DIR_REMAPPED          0xC8
 
-
+void OLED_init(void);
 
 void OLED_reset(void);
 

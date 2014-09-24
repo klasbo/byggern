@@ -12,8 +12,8 @@ void __attribute__ ((constructor)) adc_init(void){
 
 uint8_t ADC_read(ADC_channel ch){
     
-    ext_adc[1] = ch;
+    *ext_adc = ch;
     //_delay_us(40);
     while(PINB & (1<<PINB2)){}
-    return ext_adc[0];
+    return *ext_adc;
 }

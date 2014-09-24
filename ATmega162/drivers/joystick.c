@@ -2,7 +2,7 @@
 #include "joystick.h"
 #include "adc.h"
 
-#define DIR_THRESHOLD 20
+#define DIR_THRESHOLD 80
 
 static uint8_t center_x;
 static uint8_t center_y;
