@@ -96,8 +96,8 @@ void OLED_reset(void);
 void OLED_go_to_line(int line);
 void OLED_go_to_column(int column);
 
-void OLED_print(char* s);
 void OLED_printf(char* fmt, ...);
+void OLED_printf_P(const char* fmt, ...);
 
 void OLED_clear_line(int line);
 

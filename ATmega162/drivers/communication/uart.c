@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "uart.h"
-#include "../config.h"
+#include "../../config.h"
 
 #define ubrr (F_CPU/16/UART_BAUD - 1)
 

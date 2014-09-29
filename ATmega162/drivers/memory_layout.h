@@ -11,3 +11,5 @@ extern volatile char* ext_adc;
 extern volatile char* ext_oled_cmd;
 //   OLED Data
 extern volatile char* ext_oled_data;
+
+#define ext_ram_size 0x800

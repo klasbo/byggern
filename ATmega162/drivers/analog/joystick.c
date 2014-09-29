@@ -7,11 +7,16 @@
 static uint8_t center_x;
 static uint8_t center_y;
 
+void __attribute__ ((constructor)) joystick_init(void){
+    extern void adc_init(void);
+    adc_init();
+    JOY_set_new_center();
+}
 
 void JOY_set_new_center(void){
     center_x = ADC_read(JOY_X);
     center_y = ADC_read(JOY_Y);
-};
+}
 
 JOY_pos_t JOY_get_position(void){
 
@@ -31,7 +36,7 @@ JOY_pos_t JOY_get_position(void){
         .x = x_pos,
         .y = y_pos
     };
-};
+}
 
 
 JOY_dir_t JOY_get_direction(void){

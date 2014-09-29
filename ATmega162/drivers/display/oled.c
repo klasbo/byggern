@@ -11,9 +11,8 @@
 
 static int line_number;
 static int column_number;
+static FILE OLED_stdout = FDEV_SETUP_STREAM(OLED_write_char, NULL, _FDEV_SETUP_WRITE);
 
-
-static char buf[NUM_CHARS_PER_LINE * PAGES];    // used as internal buffer for OLED_printf
 
 void __attribute__ ((constructor)) OLED_init(void){
     // constructor with dependency must be triggered manually!
@@ -92,27 +91,18 @@ void OLED_go_to_column(int column){
 
 
 
-void OLED_print(char* s){
-    for(; *s!= '\0'; s++){
-        if(*s == '\n'){
-            for(int i = column_number*FONT_WIDTH; i < COLUMNS; i++){
-                *ext_oled_data = 0;
-            }
-            line_number = (line_number + 1) % FONT_HEIGHT;
-            OLED_go_to_line(line_number);
-            OLED_go_to_column(0);
-        } else {
-            OLED_write_char(*s);
-        }
-    }
-}
-
 void OLED_printf(char* fmt, ...){
     va_list v;
     va_start(v, fmt);
-    vsprintf(buf, fmt, v);
+    vfprintf(&OLED_stdout, fmt, v);
     va_end(v);
-    OLED_print(buf);
+}
+
+void OLED_printf_P(const char* fmt, ...){
+    va_list v;
+    va_start(v, fmt);
+    vfprintf_P(&OLED_stdout, fmt, v);
+    va_end(v);
 }
 
 
@@ -130,10 +120,38 @@ void OLED_write_cmd(char c){
 
 
 void OLED_write_char(char c){
-    for (int i = 0; i < FONT_WIDTH; i++){
-        *ext_oled_data = pgm_read_byte(&font[c-' '][i]);
+    /*
+    if(c == '\n'){
+        for(int i = col*(FONT_WIDTH+1); i < COLUMNS; i++){
+            draw_upper_n(0, i, line*(FONT_HEIGHT+1), FONT_HEIGHT);
+        }
+        line = (line + 1) % (ROWS/FONT_HEIGHT);
+        col = 0;
+    } else {
+        for(int i = 0; i < FONT_WIDTH; i++){
+            draw_upper_n(
+                pgm_read_byte( &font[c-' '][i] ),
+                col  * (FONT_WIDTH  + 1) + i,
+                line * (FONT_HEIGHT + 1),
+                FONT_HEIGHT
+            );
+        }
+        col++; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
     }
-    column_number++;
+    */
+    if(c == '\n'){
+        for(int i = column_number*FONT_WIDTH; i < COLUMNS; i++){
+            *ext_oled_data = 0;
+        }
+        line_number = (line_number + 1) % PAGES;
+        OLED_go_to_line(line_number);
+        OLED_go_to_column(0);
+    } else {
+        for (int i = 0; i < FONT_WIDTH; i++){
+            *ext_oled_data = pgm_read_byte(&font[c-' '][i]);
+        }
+        column_number++;
+    }
 }
 
 

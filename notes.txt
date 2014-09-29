@@ -1,2 +1,22 @@
-Ex 4:
-	WR pulse width on 162: SRWn1, SRWn0 (p272)
+byggern
+config
+
+-drivers
+	memory_layout
+	-display
+		oled
+		frame_buffer
+		font
+	-analog
+		adc
+		joystick
+		slider
+	-sram
+		sram
+	-communication
+		uart
+		-can
+			can
+			spi
+			mcp2515
+-menu

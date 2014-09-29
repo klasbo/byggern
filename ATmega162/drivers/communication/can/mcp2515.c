@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "mcp2515.h"
-#include "../spi/spi.h"
+#include "spi.h"
 
 #define MCP_READ                0b00000011
 #define MCP_WRITE               0b00000010
