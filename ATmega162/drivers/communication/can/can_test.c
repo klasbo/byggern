@@ -6,14 +6,18 @@
 #include <avr/pgmspace.h>
 
 #include "can.h"
+#include "mcp2515.h"
 
 
 
 void can_test(void){
+
+    mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_LOOPBACK);
+
     can_msg_t msg1;
     can_msg_t msg2;
     msg1.ID = 9;
-    msg1.length = 8;
+    msg1.length = 5;
     for(int i = 0; i < 8; i++){
         msg1.data[i] = i*i;
     }

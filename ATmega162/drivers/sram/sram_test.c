@@ -22,7 +22,7 @@ void sram_test(void){
         testvalue = random();
         ext_ram[i] = testvalue;
         if (ext_ram[i] != testvalue) {
-            printf_P(PSTR("SRAM error (write phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
+            //printf_P(PSTR("SRAM error (write phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
             werrors++;
         }
     }
@@ -30,9 +30,9 @@ void sram_test(void){
     for (int i = 0; i < ext_ram_size; i++) {
         testvalue = random();
         if (ext_ram[i] != testvalue) {
-            printf_P(PSTR("SRAM error (read phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
+            //printf_P(PSTR("SRAM error (read phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
             rerrors++;
         }
     }
-    printf_P(PSTR("SRAM test completed with:\n  Read phase errors:  %4d\n  Write phase errors: %4d\n"), werrors, rerrors);
+    printf_P(PSTR("SRAM test completed with:\n  Write phase errors: %4d\n  Read phase errors:  %4d\n"), werrors, rerrors);
 }

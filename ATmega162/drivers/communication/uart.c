@@ -8,7 +8,6 @@
 #define ubrr (F_CPU/16/UART_BAUD - 1)
 
 void __attribute__ ((constructor)) uart_init(void){
-    //UBRR0H = (unsigned char)(ubrr>>8);      //not needed(?), see USCR0C
     UBRR0L = (unsigned char)(ubrr);
 
     // USART Control and Status

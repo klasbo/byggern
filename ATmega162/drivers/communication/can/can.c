@@ -9,10 +9,12 @@ void __attribute__ ((constructor)) CAN_init(void){
     extern void SPI_init(void);
     SPI_init();
 
+    mcp2515_reset();
+
     mcp2515_bit_modify(MCP_RXB0CTRL,    MCP_RXB0CTRL__FILTERS_OFF);
     mcp2515_bit_modify(MCP_RXB0CTRL,    MCP_RXB0CTRL__ROLLOVER_OFF);
 
-    mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_LOOPBACK);
+    mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_NORMAL);
 
     mcp2515_bit_modify(MCP_CANINTE,     MCP_CANINTE__RX0_FULL_ENABLE);
 }
@@ -32,7 +34,6 @@ void CAN_send(can_msg_t msg){
 
 can_msg_t CAN_recv(void){
     can_msg_t msg;
-
 
     msg.ID      = (mcp2515_read(MCP_RXB0_SIDH) << 3) | (mcp2515_read(MCP_RXB0_SIDL) >> 5);
     msg.length  = (mcp2515_read(MCP_RXB0_DLC)) & (0x0f);

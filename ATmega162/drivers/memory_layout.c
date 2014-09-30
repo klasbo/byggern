@@ -2,7 +2,8 @@
 #include <avr/io.h>
 
 void __attribute__ ((constructor)) memory_layout_init(void){
-    MCUCR |= (1 << XMM2) | (1 << SRE);
+    MCUCR |= (1 << SRE);
+    SFIOR |= (1 << XMM2);
 }
 
 volatile char* ext_ram = (char*) 0x1800;
