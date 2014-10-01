@@ -12,8 +12,11 @@
 
 void can_test(void){
 
-    mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_LOOPBACK);
-
+	mcp2515_reset();
+    mcp2515_bit_modify(MCP_CANCTRL, MCP_CANCTRL__MODE_LOOPBACK);
+	
+	printf("\nMCP_CANCTRL: %x\n", mcp2515_read(MCP_CANCTRL));
+	
     can_msg_t msg1;
     can_msg_t msg2;
     msg1.ID = 9;
@@ -39,6 +42,6 @@ void can_test(void){
         );
         msg1.data[0]++;
         
-        _delay_ms(500);
+        _delay_ms(1000);
     }
 }

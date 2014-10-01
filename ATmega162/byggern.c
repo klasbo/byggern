@@ -15,6 +15,7 @@
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
+#include "drivers/communication/uart.h"
 
 
 #define if_assignment_modifies(lval, rval) \
@@ -30,8 +31,12 @@
 // TODO: SRAM region allocator? Prevent overwriting the frame buffer
 
 
+extern void can_test(void);
+
+
 int main(void){
-    
+	
+	
     // TODO: move this somewhere...
     TCCR3B |= 1<<(CS30);
     
@@ -42,7 +47,7 @@ int main(void){
     frame_buffer_printf_P(PSTR("frame buffer\nmultiline\ntest\n  yay?"));
     frame_buffer_render();
     
-    _delay_ms(5000);
+    //_delay_ms(5000);
 
     menunode_t* menu        = get_menu();
     menunode_t* prev_menu   = 0;
@@ -70,15 +75,17 @@ int main(void){
                 })
             );
         }
-        
+		
         //TODO: use joystick button
-        if(SLI_get_right_button() && menu->item.fun){
+		
+        if((SLI_get_right_button() || JOY_get_button()) && menu->item.fun){
             OLED_reset();
             OLED_printf("\nopening..\n");
             menu->item.fun();
             OLED_printf("\ndone.\n");
         }
-
+		
+		
         //TODO: delay until / periodic
         _delay_ms(20);
     }

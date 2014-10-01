@@ -14,9 +14,9 @@ void __attribute__ ((constructor)) CAN_init(void){
     mcp2515_bit_modify(MCP_RXB0CTRL,    MCP_RXB0CTRL__FILTERS_OFF);
     mcp2515_bit_modify(MCP_RXB0CTRL,    MCP_RXB0CTRL__ROLLOVER_OFF);
 
-    mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_NORMAL);
-
     mcp2515_bit_modify(MCP_CANINTE,     MCP_CANINTE__RX0_FULL_ENABLE);
+	
+	mcp2515_bit_modify(MCP_CANCTRL,     MCP_CANCTRL__MODE_NORMAL);
 }
 
 void CAN_send(can_msg_t msg){

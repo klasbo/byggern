@@ -1,6 +1,7 @@
 
 #include "joystick.h"
 #include "adc.h"
+#include "avr/io.h"
 
 #define DIR_THRESHOLD 80
 
@@ -11,6 +12,7 @@ void __attribute__ ((constructor)) joystick_init(void){
     extern void adc_init(void);
     adc_init();
     JOY_set_new_center();
+	PORTE |= (1 << PINE2);
 }
 
 void JOY_set_new_center(void){
@@ -48,5 +50,9 @@ JOY_dir_t JOY_get_direction(void){
     pos.y >  DIR_THRESHOLD  ? UP     :
     pos.y < -DIR_THRESHOLD  ? DOWN   :
                               NEUTRAL;
+}
+
+int JOY_get_button(void){
+	return !(PINE & (1<<PINE2));
 }
 

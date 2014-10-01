@@ -21,4 +21,6 @@ JOY_pos_t JOY_get_position(void);
 
 JOY_dir_t JOY_get_direction(void);
 
+int JOY_get_button(void);
+
 // TODO: Joystick button. Make part of get_direction (PRESSED)?
