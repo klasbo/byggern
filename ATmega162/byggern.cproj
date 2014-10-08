@@ -157,12 +157,6 @@
     <Compile Include="drivers\communication\can\spi.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\communication\node2\can2.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="drivers\communication\node2\can2.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="drivers\communication\uart.c">
       <SubType>compile</SubType>
     </Compile>
@@ -215,7 +209,6 @@
   <ItemGroup>
     <Folder Include="drivers" />
     <Folder Include="drivers\communication\can\" />
-    <Folder Include="drivers\communication\node2" />
     <Folder Include="drivers\display" />
     <Folder Include="drivers\analog" />
     <Folder Include="drivers\communication" />

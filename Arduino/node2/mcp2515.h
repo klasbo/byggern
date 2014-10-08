@@ -36,6 +36,8 @@
 #define MCP_CANINTF     0x2c
 #define MCP_CANINTF__RX0_CLEAR          0b00000001, 0x00
 
+#define MCP_CANSTAT     0x0e
+
 
 uint8_t mcp2515_read(uint8_t addr);
 

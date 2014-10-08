@@ -30,8 +30,11 @@ void analog_test(void){
         printf_P(PSTR("pos_x: %4d  |  pos_y: %4d\n"),
             joy_pos.x, joy_pos.y);
 
-        printf_P(PSTR("Joy dirn: %d\n\n\n"),
+        printf_P(PSTR("Joy dirn: %d\n"),
             JOY_get_direction());
+
+        printf_P(PSTR("Joy button: %d\n\n\n"),
+            JOY_get_button());
         
         _delay_ms(1000);
     }

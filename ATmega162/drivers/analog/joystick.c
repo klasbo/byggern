@@ -12,7 +12,7 @@ void __attribute__ ((constructor)) joystick_init(void){
     extern void adc_init(void);
     adc_init();
     JOY_set_new_center();
-	PORTE |= (1 << PINE2);
+	PORTB &= ~(1 << PINB2);
 }
 
 void JOY_set_new_center(void){
@@ -30,9 +30,14 @@ JOY_pos_t JOY_get_position(void){
             b > 128 && (uint8_t)(127 + b)  >=  a    ?   -128    : \
             b < 128 && (uint8_t)(128 + b)  <=  a    ?   127     : \
                                                         (int8_t)(a - b);
-                                                            
-    saturated_subtract(x_pos, x_pos_u, center_x)
-    saturated_subtract(y_pos, y_pos_u, center_y)
+    
+    #define saturated_subtract2(result, input,center)\
+        int8_t result=\
+            (input<center) ?   -((center-input)*100)/(center) :\
+            ((input-center)*100)/(255-center);
+                                                       
+    saturated_subtract2(x_pos, x_pos_u, center_x)
+    saturated_subtract2(y_pos, y_pos_u, center_y)
     
     return (JOY_pos_t){
         .x = x_pos,
@@ -53,6 +58,6 @@ JOY_dir_t JOY_get_direction(void){
 }
 
 int JOY_get_button(void){
-	return !(PINE & (1<<PINE2));
+	return !(PINB & (1<<PINB2));
 }
 
