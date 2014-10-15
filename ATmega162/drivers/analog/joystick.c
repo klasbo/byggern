@@ -57,7 +57,7 @@ JOY_dir_t JOY_get_direction(void){
                               NEUTRAL;
 }
 
-int JOY_get_button(void){
+int8_t JOY_get_button(void){
 	return !(PINB & (1<<PINB2));
 }
 

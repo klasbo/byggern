@@ -1,42 +1,36 @@
-#include "test.h"
 #include "can.h"
 #include "spi.h"
 #include "mcp2515.h"
+#include "led.h"
+#include "uart.h"
 
 #include <stdio.h>
-
 #include <Arduino.h>
+#include <Servo/Servo.h>
 
 
-#define ubrr (F_CPU/16/9600 - 1)
-
-void uart_init(void){
-
-    UBRR0L = (unsigned char)(ubrr);
-
-    // USART Control and Status
-    UCSR0B =    (1<<RXEN0)      // receive enable
-            |   (1<<TXEN0);     // transmit enable
-
-    UCSR0C =    (3<<UCSZ00);    // char size to 8
 
 
-    fdevopen((int (*)(char, struct __file*))&UART_transmit, (int (*)(struct __file*))&UART_receive);
-}
-
-char UART_receive(void){
-    while( !(UCSR0A & (1<<RXC0)) ){}    // busy-wait until receive complete
-
-    return UDR0;
-}
-
-void UART_transmit(unsigned char c){
-    while( !(UCSR0A & (1<<UDRE0)) ){}   // busy-wait until data register empty
-
-    UDR0 = c;
-}
 
 void can_test(void);
+
+
+
+#define CAN_JOYSTICK_ID 3
+
+struct JOY_pos_t {
+    int8_t x;
+    int8_t y;
+};
+
+struct JOY_pos_t CAN_to_joystick(can_msg_t msg){
+    JOY_pos_t p;
+    p.x = msg.data[0];
+    p.y = msg.data[1];
+    return p;
+}
+
+
 
 int main(void){
     extern void init(void);
@@ -45,32 +39,58 @@ int main(void){
     uart_init();
     SPI_init();
     CAN_init();
-    //mcp2515_bit_modify(MCP_CANCTRL, MCP_CANCTRL__MODE_LOOPBACK);
+    LED_init(); // not necessary?
+   
+    
 
-    can_msg_t msg;
-    //DDRB &= ~(1 << DDB3);
-    int iter = 0;
-    //can_test();
+    Servo s;
+    s.attach(6);
+    /*
+    for(int pos = 0; pos < 180; pos += 1){
+        s.write(pos);
+        delay(15);
+    }
+    for(int pos = 180; pos>=1; pos-=1){
+        s.write(pos);
+        delay(15);
+    }
+    */
+    s.write(90);
+    
+
+
     while(1){
-        printf("iter %4d\n", iter++);
-        //mcp2515_read(MCP_CANSTAT);
-
-        /*
-        PORTB |= (1 << PB3);
-        delay(500);
-        PORTB &= ~(1 << PB3);
-        delay(300);
-        */
+        //printf("\n\nled signal: %d\n\n", LED_read());
+        printf("Score: %d\n\n", LED_score_count() );
+        //delay(500);
+    }
+   
+    
+/*
+    can_msg_t msg;
+    int iter = 0;
+    while(1){
+        printf("\niter %4d\n\n", iter++);
         
-        can_msg_t msg2 = CAN_recv();
-        //if(msg2.ID != 0){
-            printf("msg2: can_msg_t(id:%d, len:%d, data:(%d, %d, %d, %d, %d, %d, %d, %d))\n\n",
+        can_msg_t msg2 = CAN_recv_blocking();
+        switch(msg2.ID){
+        case 0: break;
+        case CAN_JOYSTICK_ID:
+            printf("Received joystick position: (%d, %d)", CAN_to_joystick(msg2).x, CAN_to_joystick(msg2).y);
+            break;
+        case 10:
+            printf("Received string: %s\n", msg2.data);
+            break;
+        default:
+            printf("Received unknown msg:\n  can_msg_t(id:%d, len:%d, data:(%d, %d, %d, %d, %d, %d, %d, %d))\n\n",
                 msg2.ID,
                 msg2.length,
                 msg2.data[0], msg2.data[1], msg2.data[2], msg2.data[3],
                 msg2.data[4], msg2.data[5], msg2.data[6], msg2.data[7]
             );
-        //}
+            break;
+        }
+
         
         /*
         msg.ID = 5;
@@ -80,13 +100,12 @@ int main(void){
         msg.data[2] = 'y';
         msg.data[3] = '!';
 
-        CAN_send(msg);
+        CAN_send(msg);        
         
-        */
-        delay(1000);
+        //delay(1000);
         
     }
-
+*/
 }
 
 

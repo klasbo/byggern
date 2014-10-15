@@ -16,25 +16,20 @@
 #define __cplusplus
 extern "C" void __cxa_pure_virtual() {;}
 
-void uart_init(void);
-char UART_receive(void);
-void UART_transmit(unsigned char c);
+struct JOY_pos_t CAN_to_joystick(can_msg_t msg);
 int main(void);
-//
-//
 void can_test(void);
 
 #include "C:\Program Files\Arduino\hardware\arduino\variants\mega\pins_arduino.h" 
 #include "C:\Program Files\Arduino\hardware\arduino\cores\arduino\arduino.h"
-#include "C:\Users\drift\byggern\Arduino\node2\node2.ino"
-#include "C:\Users\drift\byggern\Arduino\node2\can.cpp"
-#include "C:\Users\drift\byggern\Arduino\node2\can.h"
-#include "C:\Users\drift\byggern\Arduino\node2\mcp2515.cpp"
-#include "C:\Users\drift\byggern\Arduino\node2\mcp2515.h"
-#include "C:\Users\drift\byggern\Arduino\node2\spi.cpp"
-#include "C:\Users\drift\byggern\Arduino\node2\spi.h"
-#include "C:\Users\drift\byggern\Arduino\node2\test.c"
-#include "C:\Users\drift\byggern\Arduino\node2\test.h"
-#include "C:\Users\drift\byggern\Arduino\node2\test2.ino"
-#include "C:\Users\drift\byggern\Arduino\node2\uart.cpp"
-#include "C:\Users\drift\byggern\Arduino\node2\uart.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\ArduinoMega2560.ino"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\can.cpp"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\can.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\led.cpp"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\led.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\mcp2515.cpp"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\mcp2515.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\spi.cpp"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\spi.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\uart.cpp"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\uart.h"

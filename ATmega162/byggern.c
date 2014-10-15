@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/pgmspace.h>
+#include <string.h>
 
 #include "drivers/analog/joystick.h"
 #include "drivers/analog/slider.h"
@@ -33,6 +34,19 @@
 
 extern void can_test(void);
 
+#define CAN_JOYSTICK_ID 3
+#define CAN_JOYSTICK_LENGTH 2
+
+can_msg_t JOY_CAN_msg(void){
+    can_msg_t msg;
+    msg.ID      = CAN_JOYSTICK_ID;
+    msg.length  = CAN_JOYSTICK_LENGTH;
+    JOY_pos_t p = JOY_get_position();
+    msg.data[0] = p.x;
+    msg.data[1] = p.y;
+    return msg;
+}
+
 
 int main(void){
 	
@@ -44,29 +58,24 @@ int main(void){
     /*
     can_msg_t msg;
     msg.ID = 10;
-    msg.length = 4;
+    msg.length = 7;
     msg.data[0] = 'y';
     msg.data[1] = 'a';
     msg.data[2] = 'y';
     msg.data[3] = '!';
-
+    msg.data[4] = ' ';
+    msg.data[5] = 0;
+    msg.data[6] = 0;
+    
+    int iter = 0;
     while(1){
-        
-        can_msg_t msg2 = CAN_recv();
-        //if(msg2.ID != 0){
-
-            printf_P(PSTR("msg2: can_msg_t(id:%d, len:%d, data:(%d, %d, %d, %d, %d, %d, %d, %d))\n\n"),
-                msg2.ID,
-                msg2.length,
-                msg2.data[0], msg2.data[1], msg2.data[2], msg2.data[3],
-                msg2.data[4], msg2.data[5], msg2.data[6], msg2.data[7]
-            );
-        //}
-        
-
-        printf("sending...\n");
+        sprintf((char*)&msg.data[5], "%d", iter++);
+        printf("sending... %s\n", msg.data);
         CAN_send(msg);
+        printf("CAN send string complete\n");
 
+        CAN_send(JOY_CAN_msg());
+        printf("CAN send joystick msg complete\n");
 
         _delay_ms(2000);
     }

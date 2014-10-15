@@ -1,9 +1,11 @@
 
 #pragma once
 
+#include <stdint.h>
+
 typedef struct {
-    int x;
-    int y;
+    int8_t x;
+    int8_t y;
 } JOY_pos_t;
 
 typedef enum {
@@ -21,6 +23,5 @@ JOY_pos_t JOY_get_position(void);
 
 JOY_dir_t JOY_get_direction(void);
 
-int JOY_get_button(void);
+int8_t JOY_get_button(void);
 
-// TODO: Joystick button. Make part of get_direction (PRESSED)?
