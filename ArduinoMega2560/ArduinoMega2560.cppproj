@@ -65,10 +65,12 @@
             <Value>C:\Program Files\Arduino\hardware\arduino\variants\mega</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo\utility</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire\utility</Value>
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -99,10 +101,12 @@
             <Value>C:\Program Files\Arduino\hardware\arduino\variants\mega</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo\utility</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire\utility</Value>
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -168,7 +172,7 @@ ide.url=http://arduino.cc/en/Main/Software
 vm.debug=true
 software=ARDUINO
 ide.appid=arduino10x
-location.sketchbook=C:\Users\andepete\Documents\Arduino
+location.sketchbook=C:\Users\eirikws\Documents\Arduino
 build.board=AVR_MEGA2560
 vm.boardsource.path=C:\Program Files\Arduino\hardware\arduino
 runtime.platform.path=C:\Program Files\Arduino\hardware\arduino
@@ -214,10 +218,12 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\hardware\arduino\variants\mega</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo\utility</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire\utility</Value>
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -248,10 +254,12 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\hardware\arduino\variants\mega</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo</Value>
             <Value>C:\Program Files\Arduino\libraries\Servo\utility</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire</Value>
+            <Value>C:\Program Files\Arduino\libraries\Wire\utility</Value>
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -317,7 +325,7 @@ ide.url=http://arduino.cc/en/Main/Software
 vm.debug=true
 software=ARDUINO
 ide.appid=arduino10x
-location.sketchbook=C:\Users\andepete\Documents\Arduino
+location.sketchbook=C:\Users\eirikws\Documents\Arduino
 build.board=AVR_MEGA2560
 vm.boardsource.path=C:\Program Files\Arduino\hardware\arduino
 runtime.platform.path=C:\Program Files\Arduino\hardware\arduino
@@ -361,6 +369,12 @@ build.arch=AVR
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcp2515.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motor.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motor.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="spi.cpp">

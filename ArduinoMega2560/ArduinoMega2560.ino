@@ -3,10 +3,12 @@
 #include "mcp2515.h"
 #include "led.h"
 #include "uart.h"
+#include "motor.h"
 
 #include <stdio.h>
 #include <Arduino.h>
 #include <Servo/Servo.h>
+#include <Wire/Wire.h>
 
 
 
@@ -36,16 +38,31 @@ int main(void){
     extern void init(void);
     init();
 
-    uart_init();
+    uart_init();	
     SPI_init();
     CAN_init();
     LED_init(); // not necessary?
-   
-    
 
+	motor_init();
+
+	
+    Wire.begin();
+	while(1){
+		printf("Writing to motor\n");
+		
+		motor_write(100, 1);
+		printf("Reading with dir 1:  %d  \n",motor_read());
+		delay(500);
+
+		motor_write(100, 0);
+		printf("Reading with dir 0:  %d  \n",motor_read());
+		delay(1000);
+	}
+}
+/*    
     Servo s;
     s.attach(6);
-    /*
+    
     for(int pos = 0; pos < 180; pos += 1){
         s.write(pos);
         delay(15);
@@ -54,22 +71,23 @@ int main(void){
         s.write(pos);
         delay(15);
     }
-    */
+    
     s.write(90);
     
 
-
+	
     while(1){
         //printf("\n\nled signal: %d\n\n", LED_read());
         printf("Score: %d\n\n", LED_score_count() );
-        //delay(500);
+        //delay(1000);
     }
-   
+*/
     
-/*
+	/*
     can_msg_t msg;
     int iter = 0;
     while(1){
+		delay(500);
         printf("\niter %4d\n\n", iter++);
         
         can_msg_t msg2 = CAN_recv_blocking();
@@ -92,7 +110,7 @@ int main(void){
         }
 
         
-        /*
+        
         msg.ID = 5;
         msg.length = 4;
         msg.data[0] = 'y';
@@ -105,8 +123,9 @@ int main(void){
         //delay(1000);
         
     }
-*/
-}
+	*/
+
+
 
 
 
