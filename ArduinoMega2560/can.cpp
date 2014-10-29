@@ -38,10 +38,6 @@ can_msg_t CAN_recv(void){
 
     memset(&msg, 0, sizeof(can_msg_t));
 
-    printf("reading... %02x  ", mcp2515_read(MCP_CANINTF));
-    printf("errors: %02x \n",   mcp2515_read(0x2d));
-
-
     if((mcp2515_read(MCP_CANINTF) & (1 << /*give some name to this:*/ 0))){
         msg.ID      = (mcp2515_read(MCP_RXB0_SIDH) << 3) | (mcp2515_read(MCP_RXB0_SIDL) >> 5);
         msg.length  = (mcp2515_read(MCP_RXB0_DLC)) & (0x0f);

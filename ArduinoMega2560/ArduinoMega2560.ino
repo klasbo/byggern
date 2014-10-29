@@ -4,6 +4,7 @@
 #include "led.h"
 #include "uart.h"
 #include "motor.h"
+#include "analog_info.h"
 
 #include <stdio.h>
 #include <Arduino.h>
@@ -44,25 +45,28 @@ int main(void){
     LED_init(); // not necessary?
 
 	motor_init();
+	pinMode(7, OUTPUT);
+	//motor_range test = motor_calibrate();
+	//delay(2000);
+	//printf("max left and right: %d %d\n",test.max_l, test.max_r);
 
-	
-    Wire.begin();
-	while(1){
-		printf("Writing to motor\n");
-		
-		motor_write(100, 1);
-		printf("Reading with dir 1:  %d  \n",motor_read());
-		delay(500);
-
-		motor_write(100, 0);
-		printf("Reading with dir 0:  %d  \n",motor_read());
-		delay(1000);
-	}
-}
-/*    
     Servo s;
     s.attach(6);
-    
+    can_msg_t msg;
+	ANALOG_info info;
+	while(1){
+		msg	 = CAN_recv_blocking();
+		info = unmake_msg(msg);
+		//printf("Slider stuff: %3d\t%3d\n", info.slider_l, 180 - ((int(info.slider_l)) * 7) / 10);
+		control_servo_slider(&s, info.slider_r);
+		motor_set_speed(info.JOY_pos_x/3);
+		//motor_set_speed((int(info.slider_l) - 127) * 60 / 127);
+		info.JOY_pos_y > 50 ? digitalWrite(7, 0) : digitalWrite(7, 1);
+	}
+
+	
+	
+	/*
     for(int pos = 0; pos < 180; pos += 1){
         s.write(pos);
         delay(15);
@@ -73,15 +77,14 @@ int main(void){
     }
     
     s.write(90);
-    
+    */
 
-	
+	/*
     while(1){
         //printf("\n\nled signal: %d\n\n", LED_read());
         printf("Score: %d\n\n", LED_score_count() );
         //delay(1000);
-    }
-*/
+    }*/
     
 	/*
     can_msg_t msg;
@@ -124,7 +127,7 @@ int main(void){
         
     }
 	*/
-
+}
 
 
 

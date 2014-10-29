@@ -18,8 +18,7 @@
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
-    <OverrideVtorValue>
-    </OverrideVtorValue>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <ProgFlashFromRam>true</ProgFlashFromRam>
     <RamSnippetAddress>0x20000000</RamSnippetAddress>
@@ -37,6 +36,19 @@
         </dependencies>
       </framework-data>
     </AsfFrameworkConfig>
+    <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
+    <com_atmel_avrdbg_tool_atmelice>
+      <ToolOptions>
+        <InterfaceProperties>
+          <JtagDbgClock>200000</JtagDbgClock>
+        </InterfaceProperties>
+        <InterfaceName>JTAG</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
+      <ToolNumber>J41800001533</ToolNumber>
+      <ToolName>Atmel-ICE</ToolName>
+    </com_atmel_avrdbg_tool_atmelice>
+    <avrtoolinterface>JTAG</avrtoolinterface>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -70,7 +82,7 @@
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\adelaidm\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -106,7 +118,7 @@
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\adelaidm\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -223,7 +235,7 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\adelaidm\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -259,7 +271,7 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\adelaidm\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -353,6 +365,12 @@ build.arch=AVR
     <Folder Include="Visual Micro\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="analog_info.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="analog_info.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="can.cpp">
       <SubType>compile</SubType>
     </Compile>

@@ -17,6 +17,7 @@
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
 #include "drivers/communication/uart.h"
+#include "drivers/analog/analog_read.h"
 
 
 #define if_assignment_modifies(lval, rval) \
@@ -55,6 +56,18 @@ int main(void){
     
     printf_P(PSTR("\nstarted!\n"));
     
+	ANALOG_info info;
+	can_msg_t msg;
+	while(1){
+		info = analog_read();
+		printf("%3d\t%3d\n", info.JOY_pos_x, info.JOY_pos_y);
+		msg = make_msg(info);
+		CAN_send(msg);
+		_delay_ms(20);
+	}
+	
+	
+	
     /*
     can_msg_t msg;
     msg.ID = 10;

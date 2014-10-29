@@ -3,6 +3,8 @@
 #include "motor.h"
 
 
+
+
 void motor_init(void){
     Wire.begin();
     DDRF    |=  (1<<DDF2)   // Output encoder enable
@@ -16,54 +18,62 @@ void motor_init(void){
     PORTF &= ~(1 << PF2);
     PORTF |= (1 << PF3);
     PORTF &= ~(1 << PF4);
+    PORTF |= (1 << PF5);
     
 }
 
-void motor_write(uint8_t data, uint8_t dir){
-    if (dir == 1){
-        PINF |=  (1 << PINF6);
+void motor_write(uint8_t speed, uint8_t dir){
+    if (dir == right){
+        PORTF |=  (1 << PF6);
     } else {
-        PINF &= ~(1 << PINF6);
+        PORTF &= ~(1 << PF6);
     }
-    PINF |= (1<<PINF5); // Enable motor
     Wire.beginTransmission(0b00101111); 
         Wire.write(0x00);
-        Wire.write(data);              
-    Wire.endTransmission();    
+        Wire.write(speed);
+    Wire.endTransmission();
 }
 
-uint8_t motor_read(void){
+uint16_t motor_read(void){
     
-    /*
-    uint8_t val = 0;
-    PORTF |= (1<<PINF3); //!RST
-    PORTF &= ~(1<<PINF2); //enable read encoder 
-    PORTF |= (1<<PINF4); //select low to read MSB
-    delayMicroseconds(20);
-    val = PINK;
+	//PORTF &= ~(1<<PINF2); //enable read encoder 
+    int8_t hsb = PINK;
+    hsb = ((hsb & 0x55) << 1) | ((hsb & 0xaa) >> 1);
+    hsb = ((hsb & 0x33) << 2) | ((hsb & 0xcc) >> 2);
+    hsb = ((hsb & 0x0f) << 4) | ((hsb & 0xf0) >> 4);
     
-    PORTF &= ~(1<<PINF3); //!RST
-    PORTF |= (1<<PINF3); //!RST
+	PORTF |= (1 << PF4);
+	delayMicroseconds(20);
+	
+	int8_t lsb = PINK;
+	lsb = ((lsb & 0x55) << 1) | ((lsb & 0xaa) >> 1);
+	lsb = ((lsb & 0x33) << 2) | ((lsb & 0xcc) >> 2);
+	lsb = ((lsb & 0x0f) << 4) | ((lsb & 0xf0) >> 4);
+	
+	PORTF &= ~(1 << PF4);
+	int16_t x = (hsb << 8) + lsb;
+	//PORTF |= (1<<PINF2); //disable read encoder 
+    return x;
     
-    PORTF |= (1<<PINF2); // disable read encoder
-    */
-    
-    printf("PINK: %2x\n", PINK);
-    uint8_t x = PINK;
-    x = ((x & 0x55) << 1) | ((x & 0xaa) >> 1);
-    x = ((x & 0x33) << 2) | ((x & 0xcc) >> 2);
-    x = ((x & 0x0f) << 4) | ((x & 0xf0) >> 4);
-    
-   return x;
-    
-    /*
-    //PORTF &= ~(1<<PINF2); // enable read encoder
-    uint8_t val = PINK;
-    PORTF &= ~(1<<PINF3); // Reset toggle pulse
-    PORTF |=  (1<<PINF3); // ditto
-    //PORTF |=  (1<<PINF2); // disable read encoder   
-    
-    return val;
-    */
+	
 }
 
+
+motor_range motor_calibrate(void){
+	motor_range range;
+	motor_write(100, left);
+	delay(1000);
+	range.max_r = motor_read();
+	printf("intern print max r:  %d\n", range.max_r);
+	motor_write(100, right);
+	delay(1000);	 
+	range.max_l = motor_read();
+	printf("intern print max l:  %d\n", range.max_l);
+	return range;
+}
+
+/** Speed is in range [-100, 100]
+*/
+void motor_set_speed(int speed){
+	motor_write((uint8_t)(abs(speed) * 255 / 100), speed > 0 ? right : left);
+}
