@@ -205,6 +205,12 @@
     <Compile Include="drivers\sram\sram_test.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="fifoqueue\fifoqueue.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="fifoqueue\fifoqueue.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="menu\menu.c">
       <SubType>compile</SubType>
     </Compile>
@@ -220,6 +226,7 @@
     <Folder Include="drivers\communication" />
     <Folder Include="drivers\sram" />
     <Folder Include="menu" />
+    <Folder Include="fifoqueue" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
