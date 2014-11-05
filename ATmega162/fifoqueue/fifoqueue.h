@@ -61,4 +61,4 @@ void print_fifoqueue_t(fifoqueue_t* q);
 /** Frees all data in an fifoqueue_t
 *   Called by fifoqueue_scoped on scope exit
 */
-void free_fifoqueue(fifoqueue_t** q);
+void delete_fifoqueue(fifoqueue_t** q);

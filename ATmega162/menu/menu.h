@@ -23,6 +23,7 @@ struct menunode_t {
 */
 menunode_t* get_menu(void);
 
+int menu_depth(menunode_t* const menu);
 
 /// ----- OPEN/CLOSE/NEXT/PREV ----- ///
 

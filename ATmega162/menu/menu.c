@@ -6,26 +6,25 @@
 extern void sram_test(void);
 extern void analog_test(void);
 extern void can_test(void);
+extern void game_2048(void);
+extern void game_pong(void);
 
 static menunode_t* mainMenu = &(menunode_t){
-    .item = { .name = "1: main menu",                               },
+    .item = { .name = "Main Menu",                                  },
     .num_submenus = 3,
     .submenus = {
         &(menunode_t){
-            .item = { .name = "1-1: settings",                          },
+            .item = { .name = "Settings",                               },
         },
         &(menunode_t){
-            .item = { .name = "1-2:",                                   },
-            .num_submenus = 1,
+            .item = { .name = "Games",                                  },
+            .num_submenus = 2,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "1-2-1:",                             },
-                    .num_submenus = 1,
-                    .submenus = {
-                        &(menunode_t){
-                            .item = { .name = "1-2-1-1:",                       },
-                        },
-                    },
+                    .item = { .name = "Pong",       .fun = &game_pong       },
+                },
+                &(menunode_t){
+                    .item = { .name = "2048",       .fun = &game_2048       },
                 },
             },
         },
@@ -62,6 +61,16 @@ menunode_t* get_menu(void){
     return mainMenu;
 }
 
+int menu_depth(menunode_t* const menu){
+    menunode_t* m       = menu;
+    int         depth   = 0;
+
+    while(m != mainMenu){
+        m = menu_close(m);
+        depth++;
+    }
+    return depth;
+}
 
 /// ----- OPEN/CLOSE/NEXT/PREV ----- ///
 

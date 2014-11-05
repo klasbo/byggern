@@ -12,7 +12,7 @@ struct fifonode_t {
     void*           data;
     
     uint16_t        size;
-    fifonode_t*    next;
+    fifonode_t*     next;
 };
 
 struct fifoqueue_t {
@@ -30,7 +30,9 @@ fifoqueue_t* new_fifoqueue(void){
 
 
 void enqueue(fifoqueue_t* q, uint8_t type, void* data, uint16_t size){
+    
     fifonode_t* newnode = malloc(sizeof(fifonode_t));
+    //printf_P(PSTR("adding node at %p : (%d, %p, %u)\n"), newnode, type, data, size);
     newnode->type = type;
     newnode->data = malloc(size);
     newnode->size = size;
@@ -40,7 +42,7 @@ void enqueue(fifoqueue_t* q, uint8_t type, void* data, uint16_t size){
 
     if(q->front == NULL){
         q->front = newnode;
-        } else {
+    } else {
         fifonode_t* n = q->front;
         while(n->next != NULL){
             n = n->next;
@@ -52,6 +54,10 @@ void enqueue(fifoqueue_t* q, uint8_t type, void* data, uint16_t size){
 
 
 void dequeue(fifoqueue_t* q, void* recv){
+    printf("dequeue type %d of size %d\n", q->front->type, q->front->size);
+
+    if(!q->front){ return; }
+
     memcpy(recv, q->front->data, q->front->size);
 
     fifonode_t* del = q->front;
@@ -67,7 +73,7 @@ void dequeue(fifoqueue_t* q, void* recv){
 uint8_t front_type(fifoqueue_t* q){
     if(q->front == NULL){
         return 0;
-        } else {
+    } else {
         return q->front->type;
     }
 }
@@ -88,11 +94,10 @@ void print_fifoqueue_t(fifoqueue_t* q){
 
 
 
-void free_fifoqueue(fifoqueue_t** q){
+void delete_fifoqueue(fifoqueue_t** q){
     
     while(front_type(*q) != 0){
         fifonode_t* del = (*q)->front;
-        printf("%d\n", del->type);
         (*q)->front = (*q)->front->next;
         
         free(del->data);

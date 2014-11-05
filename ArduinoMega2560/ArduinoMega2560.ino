@@ -12,7 +12,7 @@
 #include <Wire/Wire.h>
 
 
-
+#include "can_types.h"
 
 
 void can_test(void);
@@ -52,16 +52,19 @@ int main(void){
 
     Servo s;
     s.attach(6);
-    can_msg_t msg;
-	ANALOG_info info;
+    can_msg_t   msg;
+	ControlCmd  cmd;
 	while(1){
-		msg	 = CAN_recv_blocking();
-		info = unmake_msg(msg);
-		//printf("Slider stuff: %3d\t%3d\n", info.slider_l, 180 - ((int(info.slider_l)) * 7) / 10);
-		control_servo_slider(&s, info.slider_r);
-		motor_set_speed(info.JOY_pos_x/3);
-		//motor_set_speed((int(info.slider_l) - 127) * 60 / 127);
-		info.JOY_pos_y > 50 ? digitalWrite(7, 0) : digitalWrite(7, 1);
+		msg	 = CAN_recv_blocking();        
+
+        switch(msg.ID){
+        case CANID_ControlCmd:
+            memcpy(&cmd, msg.data, msg.length);
+            printf("received can ControlCmd: (%d, %d, %d)\n", cmd.motorSpeed, cmd.servoPos, cmd.solenoid);
+            motor_set_speed(cmd.motorSpeed);
+            s.write(cmd.servoPos);
+            digitalWrite(7, cmd.solenoid ? 1 : 0);
+        }
 	}
 
 	

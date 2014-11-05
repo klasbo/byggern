@@ -45,14 +45,9 @@ struct Tile {
         Tile*   second;
     } mergedFrom;
 };
-/*
-struct TilePair {
-    Tile*       first;
-    Tile*       second;
-};*/
 
 /** The grid consists of 4x4 cells
-*   Each cell may containg a single Tile (may be NULL)
+*   Each cell may contaning a single Tile (may be NULL)
 */
 struct Grid {
     Tile* tiles[SIZE][SIZE];
@@ -458,7 +453,7 @@ void printGrid(Grid* g){
 
 
 
-int game_2048(){
+void game_2048(void){
     srand(TCNT3);
     GameManager_scoped* gm = new_GameManager();
     
@@ -474,7 +469,7 @@ int game_2048(){
             case 'd': d = dir_right;    break;
             case 's': d = dir_down;     break;
             case 'a': d = dir_left;     break;
-            case 'q': return 0;
+            case 'q': return;
             default: break;
         }
         if(strchr("wasd", c) != NULL){
@@ -482,5 +477,5 @@ int game_2048(){
         }
     }
     
-    return 0;
+    return;
 }

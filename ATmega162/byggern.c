@@ -50,51 +50,11 @@ can_msg_t JOY_CAN_msg(void){
 
 
 int main(void){
-	
     // TODO: move this somewhere...
     TCCR3B |= 1<<(CS30);
     
     printf_P(PSTR("\nstarted!\n"));
-    
-	ANALOG_info info;
-	can_msg_t msg;
-	while(1){
-		info = analog_read();
-		printf("%3d\t%3d\n", info.JOY_pos_x, info.JOY_pos_y);
-		msg = make_msg(info);
-		CAN_send(msg);
-		_delay_ms(20);
-	}
-	
-	
-	
-    /*
-    can_msg_t msg;
-    msg.ID = 10;
-    msg.length = 7;
-    msg.data[0] = 'y';
-    msg.data[1] = 'a';
-    msg.data[2] = 'y';
-    msg.data[3] = '!';
-    msg.data[4] = ' ';
-    msg.data[5] = 0;
-    msg.data[6] = 0;
-    
-    int iter = 0;
-    while(1){
-        sprintf((char*)&msg.data[5], "%d", iter++);
-        printf("sending... %s\n", msg.data);
-        CAN_send(msg);
-        printf("CAN send string complete\n");
-
-        CAN_send(JOY_CAN_msg());
-        printf("CAN send joystick msg complete\n");
-
-        _delay_ms(2000);
-    }
-    */
-
-    
+        
     
     //frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     //frame_buffer_set_font_spacing(-2, 4);
@@ -118,14 +78,29 @@ int main(void){
                 default: break;
             }
         }
-
+        
         if_assignment_modifies(prev_menu, menu){
             OLED_reset();
-            foreach_parent_reverse(menu, lambda(void, (menunode_t* m, int lvl){
-                    for(int i = 0; i < lvl; i++){
+            if(menu != get_menu()){
+                foreach_parent_reverse(menu_close(menu), lambda(void, (menunode_t* m, int lvl){
+                        for(int i = 0; i <= lvl; i++){
+                            OLED_printf_P(PSTR("  "));
+                        }
+                        OLED_printf_P(PSTR("%s\n"), m->item.name);
+                    })
+                );
+            }
+            
+            for(int i = 0; i < menu_depth(menu); i++){
+                OLED_printf_P(PSTR("  "));
+            }
+            OLED_printf_P(PSTR(" >%s\n"), menu->item.name);
+            
+            foreach_submenu(menu, lambda(void, (menunode_t* m, int idx){
+                    for(int i = 0; i < menu_depth(m); i++){
                         OLED_printf_P(PSTR("  "));
                     }
-                    OLED_printf_P(PSTR("%s\n"), m->item.name);
+                    OLED_printf_P(PSTR("%d %s\n"), idx, m->item.name);
                 })
             );
         }
@@ -136,7 +111,7 @@ int main(void){
             OLED_reset();
             OLED_printf("\nopening..\n");
             menu->item.fun();
-            OLED_printf("\ndone.\n");
+            prev_menu = NULL;
         }
 		
 		
