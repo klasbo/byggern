@@ -6,26 +6,21 @@
 extern void sram_test(void);
 extern void analog_test(void);
 extern void can_test(void);
+extern void game_2048(void);
 
 static menunode_t* mainMenu = &(menunode_t){
-    .item = { .name = "1: main menu",                               },
+    .item = { .name = "Main Menu",                                  },
     .num_submenus = 3,
     .submenus = {
         &(menunode_t){
-            .item = { .name = "1-1: settings",                          },
+            .item = { .name = "Settings",                               },
         },
         &(menunode_t){
-            .item = { .name = "1-2:",                                   },
+            .item = { .name = "Games",                                  },
             .num_submenus = 1,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "1-2-1:",                             },
-                    .num_submenus = 1,
-                    .submenus = {
-                        &(menunode_t){
-                            .item = { .name = "1-2-1-1:",                       },
-                        },
-                    },
+                    .item = { .name = "2048",       .fun = &game_2048       },
                 },
             },
         },

@@ -30,24 +30,6 @@
     &__fn; \
 })
 
-// TODO: SRAM region allocator? Prevent overwriting the frame buffer
-
-
-extern void can_test(void);
-
-#define CAN_JOYSTICK_ID 3
-#define CAN_JOYSTICK_LENGTH 2
-
-can_msg_t JOY_CAN_msg(void){
-    can_msg_t msg;
-    msg.ID      = CAN_JOYSTICK_ID;
-    msg.length  = CAN_JOYSTICK_LENGTH;
-    JOY_pos_t p = JOY_get_position();
-    msg.data[0] = p.x;
-    msg.data[1] = p.y;
-    return msg;
-}
-
 
 int main(void){
 	
@@ -55,46 +37,6 @@ int main(void){
     TCCR3B |= 1<<(CS30);
     
     printf_P(PSTR("\nstarted!\n"));
-    
-	ANALOG_info info;
-	can_msg_t msg;
-	while(1){
-		info = analog_read();
-		printf("%3d\t%3d\n", info.JOY_pos_x, info.JOY_pos_y);
-		msg = make_msg(info);
-		CAN_send(msg);
-		_delay_ms(20);
-	}
-	
-	
-	
-    /*
-    can_msg_t msg;
-    msg.ID = 10;
-    msg.length = 7;
-    msg.data[0] = 'y';
-    msg.data[1] = 'a';
-    msg.data[2] = 'y';
-    msg.data[3] = '!';
-    msg.data[4] = ' ';
-    msg.data[5] = 0;
-    msg.data[6] = 0;
-    
-    int iter = 0;
-    while(1){
-        sprintf((char*)&msg.data[5], "%d", iter++);
-        printf("sending... %s\n", msg.data);
-        CAN_send(msg);
-        printf("CAN send string complete\n");
-
-        CAN_send(JOY_CAN_msg());
-        printf("CAN send joystick msg complete\n");
-
-        _delay_ms(2000);
-    }
-    */
-
-    
     
     //frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     //frame_buffer_set_font_spacing(-2, 4);
@@ -133,10 +75,10 @@ int main(void){
         //TODO: use joystick button
 		
         if(SLI_get_right_button() && menu->item.fun){
-            OLED_reset();
-            OLED_printf("\nopening..\n");
+            //OLED_reset();
+            //OLED_printf("\nopening..\n");
             menu->item.fun();
-            OLED_printf("\ndone.\n");
+            prev_menu = NULL;
         }
 		
 		

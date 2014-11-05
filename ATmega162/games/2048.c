@@ -5,8 +5,15 @@
 #include <math.h>
 #include <avr/io.h>
 
-#define SIZE 4
+#include "../drivers/analog/joystick.h"
+#include "../drivers/analog/slider.h"
+#include "../drivers/display/frame_buffer.h"
+#include "../drivers/display/font8x8.h"
+
+
+#define SIZE            4
 #define NUM_START_TILES 2
+#define TILE_2048       32
 
 uint8_t traversal_asc[4] = {0, 1, 2, 3};
 uint8_t traversal_dsc[4] = {3, 2, 1, 0};
@@ -69,6 +76,8 @@ struct StorageManager {
 struct Actuator {
     void        (*actuate)(Grid*, ActuatorMetadata);
 };
+#define ActuatorTypeFrameBuffer 1
+#define ActuatorTypeUART        2
 
 struct ActuatorMetadata {
     uint32_t    score;
@@ -135,8 +144,12 @@ uint8_t movesAvailable(GameManager* gm);
 uint8_t tileMatchesAvailable(GameManager* gm);
 // --- VECTOR FUNCTIONS --- //
 Vector getVector(Direction d);
+// --- ACTUATOR FUNCTIONS --- //
+Actuator* new_Actuator(uint8_t type);
+void actuateFrameBuffer(Grid* g, ActuatorMetadata am);
+void actuateUART(Grid* g, ActuatorMetadata am);
 // --- MISC --- //
-void printGrid(Grid* g);
+void printGrid(GameManager* gm);
 
 // --- POSITION FUNCTIONS --- //
 uint8_t withinBounds(Position p){
@@ -222,8 +235,9 @@ GameManager* new_GameManager(){
     GameManager* gm = malloc(sizeof(GameManager));
     memset(gm, 0, sizeof(GameManager));
     
-    gm->grid = new_Grid();
-    gm->numStartTiles = NUM_START_TILES;
+    gm->grid            = new_Grid();
+    gm->numStartTiles   = NUM_START_TILES;
+    gm->actuator        = new_Actuator(ActuatorTypeFrameBuffer);
     
     addStartTiles(gm);
     
@@ -242,6 +256,7 @@ void delete_GameManager(GameManager** gm){
         }
     }
     free((*gm)->grid);
+    free((*gm)->actuator);
     free(*gm);
     return;
 }
@@ -273,9 +288,11 @@ Position randomAvailablePosition(GameManager* gm){
 
 
 void actuate(GameManager* gm){
+    /*
     if(gm->storageManager->getBestScore() < gm->score){
         gm->storageManager->setBestScore(gm->score);
     }
+    */
     /*
     if(gm->over){
         gm->storageManager->clearGameState();
@@ -283,14 +300,14 @@ void actuate(GameManager* gm){
         gm->storageManager->setGameState(serialize(gm));
     }
     */
-    
+
     gm->actuator->actuate(
         gm->grid,
         (ActuatorMetadata){
             .score      = gm->score,
             .over       = gm->over,
             .won        = gm->won,
-            .bestScore  = gm->storageManager->getBestScore(),
+            //.bestScore  = gm->storageManager->getBestScore(),
             .terminated = isGameTerminated(gm),
         }
     );
@@ -367,7 +384,7 @@ void move(GameManager* gm, Direction d){
                     
                     gm->score += (1 << merged->value);
                     
-                    if((1 << merged->value) == 2048){
+                    if((1 << merged->value) == TILE_2048){
                         gm->won = 1;
                     }
                 } else {
@@ -388,7 +405,7 @@ void move(GameManager* gm, Direction d){
             gm->over = 1;
         }
         
-        //gm->actuator->actuate();
+        actuate(gm);
     }
 }
 
@@ -439,48 +456,109 @@ Vector getVector(Direction d){
 }
 
 
-// --- MISC --- //
-void printGrid(Grid* g){
-    printf("+----+----+----+----+\n");
-    for(int x = 0; x < SIZE; x++){
-        printf("|");
-        for(int y = 0; y < SIZE; y++){
-            if(g->tiles[x][y]){
-                printf("%4d|", 1 << g->tiles[x][y]->value);
-            } else {
-                printf("    |");
-            }
-        }
-        printf("\n");
+// --- ACTUATOR FUNCTIONS --- //
+Actuator* new_Actuator(uint8_t type){
+    Actuator* a = malloc(sizeof(Actuator));
+    memset(a, 0, sizeof(Actuator));
+
+    if(type == ActuatorTypeFrameBuffer){
+        a->actuate = actuateFrameBuffer;
+    } else if(type == ActuatorTypeUART){
+        a->actuate = actuateUART;
     }
-    printf("+----+----+----+----+\n");
+    return a;
 }
 
+void actuateFrameBuffer(Grid* g, ActuatorMetadata am){
+    if(am.over){
+        frame_buffer_set_cursor(8, 4);
+        frame_buffer_printf("Game over!");
+        frame_buffer_render();
+        return;
+    } else if(am.won){
+        frame_buffer_set_cursor(8, 4);
+        frame_buffer_printf("You win!");
+        frame_buffer_render();
+        return;
+
+    }
+    frame_buffer_clear();
+    frame_buffer_printf("+----+----+----+----+\n");
+    for(int x = 0; x < SIZE; x++){
+        frame_buffer_printf("|");
+        for(int y = 0; y < SIZE; y++){
+            if(g->tiles[x][y]){
+                frame_buffer_printf("%4d|", 1 << g->tiles[x][y]->value);
+                } else {
+                frame_buffer_printf("    |");
+            }
+        }
+        frame_buffer_printf("\n");
+    }
+    frame_buffer_printf("+----+----+----+----+\n");
+    frame_buffer_printf("Score: %5d", am.score);
+    frame_buffer_render();
+}
+void actuateUART(Grid* g, ActuatorMetadata am){
+}
+
+// --- MISC --- //
+/*
+void printGrid(GameManager* gm){
+    frame_buffer_clear();
+    frame_buffer_printf("+----+----+----+----+\n");
+    for(int x = 0; x < SIZE; x++){
+        frame_buffer_printf("|");
+        for(int y = 0; y < SIZE; y++){
+            if(gm->grid->tiles[x][y]){
+                frame_buffer_printf("%4d|", 1 << gm->grid->tiles[x][y]->value);
+            } else {
+                frame_buffer_printf("    |");
+            }
+        }
+        frame_buffer_printf("\n");
+    }
+    frame_buffer_printf("+----+----+----+----+\n");
+    frame_buffer_printf("Score: %5d", gm->score);
+    frame_buffer_render();
+}
+*/
 
 
-int game_2048(){
+
+void game_2048(){
     srand(TCNT3);
     GameManager_scoped* gm = new_GameManager();
     
-    char c;
-    Direction d = dir_down;
-        
+    Direction inputDirn     = dir_down;
+    JOY_dir_t joyDirn       = JOY_get_direction();
+    JOY_dir_t joyDirnPrev   = joyDirn;
+
+    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+    frame_buffer_set_font_spacing(-2, 0);
+    
+    actuate(gm);
+
     while(1){
-        printGrid(gm->grid);
-        scanf("\n%c", &c);
-        printf("received %c\n", c);
-        switch(c){
-            case 'w': d = dir_up;       break;
-            case 'd': d = dir_right;    break;
-            case 's': d = dir_down;     break;
-            case 'a': d = dir_left;     break;
-            case 'q': return 0;
-            default: break;
+        joyDirnPrev = joyDirn;
+        joyDirn     = JOY_get_direction();
+        if(joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
+            switch(joyDirn){
+                case UP:        inputDirn = dir_up;     break;
+                case RIGHT:     inputDirn = dir_right;  break;
+                case DOWN:      inputDirn = dir_down;   break;
+                case LEFT:      inputDirn = dir_left;   break;
+                default: break;
+            }
+            move(gm, inputDirn);    
         }
-        if(strchr("wasd", c) != NULL){
-            move(gm, d);
+        if(SLI_get_left_button()){
+            frame_buffer_clear();
+            frame_buffer_render();
+            return;
         }
     }
+    printf("2048 session over\n");
     
-    return 0;
+    return;
 }

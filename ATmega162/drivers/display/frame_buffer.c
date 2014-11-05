@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "font8x8.h"
 #include "oled.h"
@@ -34,6 +35,12 @@ void frame_buffer_render(void){
             *ext_oled_data = (char)frame[i][j];
         }
     }
+}
+
+void frame_buffer_clear(void){
+    memset((void*)0x1800, 0, 0x400);
+    col = 0;
+    line = 0;
 }
 
 uint8_t reverse_bits(uint8_t x){
@@ -199,3 +206,7 @@ void frame_buffer_set_font_spacing(uint8_t horizontal, uint8_t vertical){
     font_vert_spacing  = vertical;
 }
 
+void frame_buffer_set_cursor(uint8_t x, uint8_t y){
+    col = x;
+    line = y;
+}

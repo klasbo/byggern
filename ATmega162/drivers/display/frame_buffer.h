@@ -9,6 +9,9 @@
 */
 void frame_buffer_render(void);
 
+/** Clears and resets the frame buffer
+*/
+void frame_buffer_clear(void);
 
 uint8_t reverse_bits(uint8_t x);
 
@@ -76,3 +79,5 @@ void frame_buffer_draw_char(char c);
 void frame_buffer_set_font(void* addr, uint8_t width, uint8_t height, uint8_t start_offset);
 
 void frame_buffer_set_font_spacing(uint8_t horizontal, uint8_t vertical);
+
+void frame_buffer_set_cursor(uint8_t x, uint8_t y);
