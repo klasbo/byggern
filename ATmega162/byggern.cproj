@@ -211,6 +211,9 @@
     <Compile Include="fifoqueue\fifoqueue.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="games\2048.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="menu\menu.c">
       <SubType>compile</SubType>
     </Compile>
@@ -227,6 +230,7 @@
     <Folder Include="drivers\sram" />
     <Folder Include="menu" />
     <Folder Include="fifoqueue" />
+    <Folder Include="games" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
