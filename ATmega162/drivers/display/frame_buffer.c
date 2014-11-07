@@ -93,7 +93,7 @@ void draw_lower_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
 
 
 void draw_pixel(uint8_t b, uint8_t x, uint8_t y){
-    if(x >= ROWS || y >= PAGES*8){ return; }
+    if(x >= COLUMNS || y >= PAGES*8){ return; }
 
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
@@ -176,21 +176,21 @@ void frame_buffer_printf_P(const char* fmt, ...){
 
 void frame_buffer_draw_char(char c){
     if(c == '\n'){
-        for(int i = col * (font_width + font_horiz_spacing);  i < COLUMNS;  i++){
-            draw_upper_n(0,  i,  line * (font_height + font_vert_spacing),  font_height);
+        for(int i = col; i < COLUMNS; i++){
+            draw_upper_n(0, i, line, font_height);
         }
-        line = (line + 1) % (ROWS / (font_height + font_vert_spacing));
+        line = (line + font_height + font_vert_spacing) % ROWS;
         col = 0;
     } else {
         for(int i = 0; i < font_width; i++){
             draw_upper_n(
                 pgm_read_byte( font + (c-font_start_offset)*font_width + i ),
-                col  * (font_width + font_horiz_spacing) + i,
-                line * (font_height + font_vert_spacing),
+                col + i,
+                line,
                 font_height
             );
         }
-        col++; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
+        col += font_width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
     }
 }
 

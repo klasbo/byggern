@@ -13,7 +13,6 @@ void frame_buffer_render(void);
 */
 void frame_buffer_clear(void);
 
-uint8_t reverse_bits(uint8_t x);
 
 /// ----- Drawing bytes / pixels ----- ///
 /**
@@ -81,3 +80,8 @@ void frame_buffer_set_font(void* addr, uint8_t width, uint8_t height, uint8_t st
 void frame_buffer_set_font_spacing(uint8_t horizontal, uint8_t vertical);
 
 void frame_buffer_set_cursor(uint8_t x, uint8_t y);
+
+
+/// ----- misc ----- ///
+
+uint8_t reverse_bits(uint8_t x);
