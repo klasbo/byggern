@@ -13,7 +13,9 @@
 
 #define SIZE            4
 #define NUM_START_TILES 2
-#define TILE_2048       32
+#define TILE_2048       16
+#define GRID_SIZE_X     22
+#define GRID_SIZE_Y     11
 
 uint8_t traversal_asc[4] = {0, 1, 2, 3};
 uint8_t traversal_dsc[4] = {3, 2, 1, 0};
@@ -46,17 +48,11 @@ struct Tile {
     uint8_t     value;
     Position    position;
     Position    previousPosition;
-//    TilePair    mergedFrom;
     struct TilePair {
         Tile*   first;
         Tile*   second;
     } mergedFrom;
 };
-/*
-struct TilePair {
-    Tile*       first;
-    Tile*       second;
-};*/
 
 /** The grid consists of 4x4 cells
 *   Each cell may containg a single Tile (may be NULL)
@@ -88,7 +84,6 @@ struct ActuatorMetadata {
 };
 
 struct GameManager {
-    //InputManager*       inputManager;
     StorageManager*     storageManager;
     Actuator*           actuator;
     Grid*               grid;
@@ -146,10 +141,9 @@ uint8_t tileMatchesAvailable(GameManager* gm);
 Vector getVector(Direction d);
 // --- ACTUATOR FUNCTIONS --- //
 Actuator* new_Actuator(uint8_t type);
+void actuatorDrawBackground(Actuator* a);
 void actuateFrameBuffer(Grid* g, ActuatorMetadata am);
 void actuateUART(Grid* g, ActuatorMetadata am);
-// --- MISC --- //
-void printGrid(GameManager* gm);
 
 // --- POSITION FUNCTIONS --- //
 uint8_t withinBounds(Position p){
@@ -262,7 +256,7 @@ void delete_GameManager(GameManager** gm){
 }
 
 uint8_t isGameTerminated(GameManager* gm){
-    return gm->over || (gm->won && gm->keepPlaying);
+    return gm->over || (gm->won && !gm->keepPlaying);
 }
 
 void addStartTiles(GameManager* gm){
@@ -463,43 +457,107 @@ Actuator* new_Actuator(uint8_t type){
 
     if(type == ActuatorTypeFrameBuffer){
         a->actuate = actuateFrameBuffer;
+        actuatorDrawBackground(a);
     } else if(type == ActuatorTypeUART){
         a->actuate = actuateUART;
     }
     return a;
 }
 
-void actuateFrameBuffer(Grid* g, ActuatorMetadata am){
-    if(am.over){
-        frame_buffer_set_cursor(8, 4);
-        frame_buffer_printf("Game over!");
-        frame_buffer_render();
-        return;
-    } else if(am.won){
-        frame_buffer_set_cursor(8, 4);
-        frame_buffer_printf("You win!");
-        frame_buffer_render();
-        return;
-
-    }
-    frame_buffer_clear();
-    frame_buffer_printf("+----+----+----+----+\n");
-    for(int x = 0; x < SIZE; x++){
-        frame_buffer_printf("|");
-        for(int y = 0; y < SIZE; y++){
-            if(g->tiles[x][y]){
-                frame_buffer_printf("%4d|", 1 << g->tiles[x][y]->value);
-                } else {
-                frame_buffer_printf("    |");
+void actuatorDrawBackground(Actuator* a){
+    if(a->actuate == actuateFrameBuffer){
+        for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
+            for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
+                draw_rectangle(0, x, 0, y);
             }
         }
-        frame_buffer_printf("\n");
+
+        frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 0);
+        frame_buffer_printf("Score");
+
+        frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 20);
+        frame_buffer_printf("Best");
+        
+        frame_buffer_set_cursor(2, 56);
+        frame_buffer_printf("Quit");
+
+        frame_buffer_render();
     }
-    frame_buffer_printf("+----+----+----+----+\n");
-    frame_buffer_printf("Score: %5d", am.score);
+}
+
+void actuateFrameBuffer(Grid* g, ActuatorMetadata am){
+
+    frame_buffer_set_font_spacing(-2, 0);
+    for(int x = 0; x < SIZE; x++){
+        for(int y = 0; y < SIZE; y++){
+            clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
+            if(g->tiles[y][x]){
+                frame_buffer_set_cursor(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+3);
+                frame_buffer_printf("%2d", 1 << g->tiles[y][x]->value);
+            }
+        }
+    }
+
+    frame_buffer_set_cursor(GRID_SIZE_X*4 + 2, 8);
+    frame_buffer_printf("%6ld", am.score);
+
+    frame_buffer_set_cursor(GRID_SIZE_X*4 + 2, 28);
+    frame_buffer_printf("%6ld", am.bestScore);
+
+    if(am.terminated){
+        if(am.over){
+            frame_buffer_set_font_spacing(0, 0);
+            frame_buffer_set_cursor(2, 18);
+            frame_buffer_printf("Game over!");
+
+            frame_buffer_set_font_spacing(-1, 0);
+            frame_buffer_set_cursor(11, 46);
+            frame_buffer_printf("New game?");
+
+            clear_area(0, 127, 56, 63);
+
+            frame_buffer_set_cursor(2, 56);
+            frame_buffer_printf("No");
+
+            frame_buffer_set_cursor(100, 56);
+            frame_buffer_printf("Yes");
+        } else if(am.won){
+            frame_buffer_set_font_spacing(0, 0);
+            frame_buffer_set_cursor(9, 18);
+            frame_buffer_printf("You win!");
+
+            frame_buffer_set_font_spacing(-1, 0);
+            frame_buffer_set_cursor(11, 46);
+            frame_buffer_printf("Keep Playing?");
+
+            clear_area(0, 127, 56, 63);
+
+            frame_buffer_set_cursor(2, 56);
+            frame_buffer_printf("No");
+
+            frame_buffer_set_cursor(100, 56);
+            frame_buffer_printf("Yes");
+        }
+    }
     frame_buffer_render();
 }
+
+
 void actuateUART(Grid* g, ActuatorMetadata am){
+    printf("+----+----+----+----+\n");
+    for(int x = 0; x < SIZE; x++){
+        printf("|");
+        for(int y = 0; y < SIZE; y++){
+            if(g->tiles[x][y]){
+                printf("%4d|", 1 << g->tiles[x][y]->value);
+                } else {
+                printf("    |");
+            }
+        }
+        printf("\n");
+    }
+    printf("+----+----+----+----+\n");
+    printf("Score: %5ld\n", am.score);
 }
 
 // --- MISC --- //
@@ -530,16 +588,18 @@ void game_2048(){
     srand(TCNT3);
     GameManager_scoped* gm = new_GameManager();
     
-    Direction inputDirn     = dir_down;
-    JOY_dir_t joyDirn       = JOY_get_direction();
-    JOY_dir_t joyDirnPrev   = joyDirn;
+    Direction   inputDirn       = dir_down;
+    JOY_dir_t   joyDirn         = JOY_get_direction();
+    JOY_dir_t   joyDirnPrev     = joyDirn;
+    uint8_t     quit            = 0;
 
     frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     frame_buffer_set_font_spacing(-2, 0);
     
+    actuatorDrawBackground(gm->actuator);   // for some reason the text isn't drawn the first time. (WAT)
     actuate(gm);
 
-    while(1){
+    while(!quit){
         joyDirnPrev = joyDirn;
         joyDirn     = JOY_get_direction();
         if(joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
@@ -552,10 +612,41 @@ void game_2048(){
             }
             move(gm, inputDirn);    
         }
-        if(SLI_get_left_button()){
-            frame_buffer_clear();
-            frame_buffer_render();
-            return;
+
+        if(isGameTerminated(gm)){
+            if(gm->over){
+                if(SLI_get_left_button()){  // quit
+                    frame_buffer_clear();
+                    frame_buffer_render();
+                    quit = 1;
+                }
+                if(SLI_get_right_button()){ // restart
+                    frame_buffer_clear();
+                    //clearGameState(gm->storageManager);
+                    delete_GameManager(&gm);
+                    gm = new_GameManager();
+                    actuatorDrawBackground(gm->actuator);
+                    actuate(gm);
+                }
+            } else if(gm->won){
+                if(SLI_get_left_button()){  // quit
+                    frame_buffer_clear();
+                    frame_buffer_render();
+                    quit = 1;
+                }
+                if(SLI_get_right_button()){ // keep playing
+                    gm->keepPlaying = 1;
+                    frame_buffer_clear();
+                    actuatorDrawBackground(gm->actuator);
+                    actuate(gm);
+                }
+            }
+        } else {
+            if(SLI_get_left_button()){  // quit
+                frame_buffer_clear();
+                frame_buffer_render();
+                quit = 1;
+            }
         }
     }
     printf("2048 session over\n");
