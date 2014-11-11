@@ -170,10 +170,16 @@
     <Compile Include="drivers\communication\uart.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\display\font8x8.c">
+    <Compile Include="drivers\display\fonts\font8x8.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\display\font8x8.h">
+    <Compile Include="drivers\display\fonts\font8x8.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\display\fonts\font_2048.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\display\fonts\font_2048.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\display\frame_buffer.c">
@@ -221,6 +227,12 @@
     <Compile Include="menu\menu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="userprofile\userprofile.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="userprofile\userprofile.h">
+      <SubType>compile</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="drivers" />
@@ -228,10 +240,12 @@
     <Folder Include="drivers\display" />
     <Folder Include="drivers\analog" />
     <Folder Include="drivers\communication" />
+    <Folder Include="drivers\display\fonts" />
     <Folder Include="drivers\sram" />
     <Folder Include="menu" />
     <Folder Include="fifoqueue" />
     <Folder Include="games" />
+    <Folder Include="userprofile" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>

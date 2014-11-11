@@ -8,42 +8,49 @@
 #include "../drivers/analog/joystick.h"
 #include "../drivers/analog/slider.h"
 #include "../drivers/display/frame_buffer.h"
-#include "../drivers/display/font8x8.h"
+#include "../drivers/display/fonts/font8x8.h"
+#include "../drivers/display/fonts/font_2048.h"
+#include "../userprofile/userprofile.h"
 
 
 #define SIZE            4
 #define NUM_START_TILES 2
-#define TILE_2048       16
-#define GRID_SIZE_X     22
-#define GRID_SIZE_Y     11
+#define GRID_SIZE_X     16
+#define GRID_SIZE_Y     15
 
-uint8_t traversal_asc[4] = {0, 1, 2, 3};
-uint8_t traversal_dsc[4] = {3, 2, 1, 0};
+uint8_t traversal_asc[SIZE] = {0, 1, 2, 3};
+uint8_t traversal_dsc[SIZE] = {3, 2, 1, 0};
+
+#define TILE_2048       16  // The tile value needed to win (2048 by default)
 
 typedef struct Position         Position;
 typedef struct FarthestPosition FarthestPosition;
 typedef struct Tile             Tile;
 typedef struct Grid             Grid;
-typedef struct StorageManager   StorageManager;
 typedef struct Actuator         Actuator;
 typedef struct ActuatorMetadata ActuatorMetadata;
 #define GameManager_scoped __attribute__((cleanup(delete_GameManager))) GameManager
 typedef struct GameManager      GameManager;
 
-
+/** A non-specific x-y coordinate
+*/
 struct Position {
     int8_t      x;
     int8_t      y;
 };
 
+/** Used when moving a tile
+*   A tile is either merged into next, or moved to farthest
+*/
 struct FarthestPosition {
     Position    farthest;
     Position    next;
 };
 
 
-// A tile is placed on the grid, and always has a value
-// The actual value is 2^value, to conserve space
+/** A tile is placed on the grid, and always has a value
+*   The actual value is 2^value, to conserve space and to align with font rendering
+*/
 struct Tile {
     uint8_t     value;
     Position    position;
@@ -54,27 +61,23 @@ struct Tile {
     } mergedFrom;
 };
 
-/** The grid consists of 4x4 cells
-*   Each cell may containg a single Tile (may be NULL)
+/** The grid consists of a SIZE-by-SIZE array of cells
+*   Each cell may contain a single Tile (may be NULL)
 */
 struct Grid {
     Tile* tiles[SIZE][SIZE];
 };
 
-
-struct StorageManager {
-    uint32_t    (*getBestScore)(void);
-    void        (*setBestScore)(uint32_t score);
-    //void        clearGameState(void);
-    //void        setGameState(void* data, uint16_t size);
-};
-
+/** The Actuator displays the game state on your thing of choice (OLED display, printf to UART, etc)
+*/
 struct Actuator {
-    void        (*actuate)(Grid*, ActuatorMetadata);
+    void        (*actuate)(Grid const * const g, ActuatorMetadata const am);
 };
 #define ActuatorTypeFrameBuffer 1
 #define ActuatorTypeUART        2
 
+/** A collection of extra stuff the Actuator needs
+*/
 struct ActuatorMetadata {
     uint32_t    score;
     uint32_t    bestScore;
@@ -83,8 +86,10 @@ struct ActuatorMetadata {
     uint8_t     terminated;
 };
 
+/** The GameManager is the core of the game
+*/
 struct GameManager {
-    StorageManager*     storageManager;
+    UserProfile*        userProfile;
     Actuator*           actuator;
     Grid*               grid;
     
@@ -95,6 +100,8 @@ struct GameManager {
     uint8_t             keepPlaying;
 };
 
+/** Directions to move the grid in
+*/
 typedef enum {
     dir_up,
     dir_right,
@@ -102,6 +109,8 @@ typedef enum {
     dir_left
 } Direction;
 
+/** Intended as a unit vector for iterating in a specific Direction
+*/
 typedef struct Vector Vector;
 struct Vector {
     int8_t      x;
@@ -109,44 +118,51 @@ struct Vector {
 };
 
 // --- POSITION FUNCTIONS --- //
-uint8_t withinBounds(Position p);
-uint8_t positionsEqual(Position first, Position second);
+uint8_t withinBounds(Position const p);
+uint8_t positionsEqual(Position const first, Position const second);
 // --- TILE FUNCTIONS --- //
-Tile* new_Tile(Position p);
-void savePosition(Tile* t);
-void updatePosition(Tile* t, Position p);
+Tile* new_Tile(Position const p);
+void savePosition(Tile* const t);
+void updatePosition(Tile* const t, Position const p);
 // --- GRID FUNCTIONS --- //
 Grid* new_Grid();
-uint8_t cellsAvailable(Grid* g);
-Tile* cellContent(Grid* g, Position p);
-uint8_t cellOccupied(Grid* g, Position p);
-void insertTile(Grid* g, Tile* t);
-void removeTile(Grid* g, Tile* t);
+uint8_t cellsAvailable(Grid const * const g);
+Tile* cellContent(Grid const * const g, Position const p);
+uint8_t cellOccupied(Grid const * const g, Position const p);
+void insertTile(Grid* const g, Tile* const t);
+void removeTile(Grid* const g, Tile const * const t);
 void eachCell(Grid* g, void fcn(Position p, Tile* t));
+// --- USERPROFILE FUNCTIONS --- //
+uint32_t getBestScore(UserProfile const * const p);
+void setBestScore(UserProfile* const p, uint32_t const score);
+void setGameState(UserProfile* const p, Grid const * const g);
+void clearGameState(UserProfile* const p);
 // --- GAME MANAGER FUNCTIONS --- //
 GameManager* new_GameManager();
-void delete_GameManager(GameManager** gm);
-uint8_t isGameTerminated(GameManager* gm);
-void addStartTiles(GameManager* gm);
-void addRandomTile(GameManager* gm);
-Position randomAvailablePosition(GameManager* gm);
-void actuate(GameManager* gm);
-void prepareTiles(GameManager* gm);
-void moveTile(GameManager* gm, Tile* t, Position p);
-void move(GameManager* gm, Direction d);
-FarthestPosition findFarthestPosition(GameManager* gm, Position p, Vector v);
-uint8_t movesAvailable(GameManager* gm);
-uint8_t tileMatchesAvailable(GameManager* gm);
+void delete_GameManager(GameManager* const * const gm);
+uint8_t isGameTerminated(GameManager const * const gm);
+void addStartTiles(GameManager* const gm);
+void addRandomTile(GameManager* const gm);
+Position randomAvailablePosition(GameManager const * const gm);
+void actuate(GameManager* const gm);
+void prepareTiles(GameManager* const gm);
+void moveTile(GameManager* const gm, Tile* const t, Position const p);
+void move(GameManager* const gm, Direction const d);
+FarthestPosition findFarthestPosition(GameManager const * const gm, Position p, Vector const v);
+uint8_t movesAvailable(GameManager const * const gm);
+uint8_t tileMatchesAvailable(GameManager const * const gm);
 // --- VECTOR FUNCTIONS --- //
-Vector getVector(Direction d);
+Vector getVector(Direction const d);
 // --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(uint8_t type);
-void actuatorDrawBackground(Actuator* a);
-void actuateFrameBuffer(Grid* g, ActuatorMetadata am);
-void actuateUART(Grid* g, ActuatorMetadata am);
+Actuator* new_Actuator(uint8_t const type);
+void actuatorDrawBackground(Actuator const * const a);
+void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am);
+void actuateUART(Grid const * const g, ActuatorMetadata const am);
+
+
 
 // --- POSITION FUNCTIONS --- //
-uint8_t withinBounds(Position p){
+uint8_t withinBounds(Position const p){
     return 
         p.x     >=  0       &&
         p.y     >=  0       &&
@@ -154,13 +170,13 @@ uint8_t withinBounds(Position p){
         p.y     <   SIZE    ;
 }
 
-uint8_t positionsEqual(Position first, Position second){
+uint8_t positionsEqual(Position const first, Position const second){
     return first.x == second.x  &&  first.y == second.y;
 }
 
 
 // --- TILE FUNCTIONS --- //
-Tile* new_Tile(Position p){
+Tile* new_Tile(Position const p){
     Tile* t = malloc(sizeof(Tile));
     memset(t, 0, sizeof(Tile));
     t->position = p;
@@ -168,13 +184,14 @@ Tile* new_Tile(Position p){
     return t;
 }
 
-void savePosition(Tile* t){
+void savePosition(Tile* const t){
     t->previousPosition = t->position;
 }
 
-void updatePosition(Tile* t, Position p){
+void updatePosition(Tile* const t, Position const p){
     t->position = p;
 }
+
 
 // --- GRID FUNCTIONS --- //
 Grid* new_Grid(){
@@ -183,7 +200,7 @@ Grid* new_Grid(){
     return g;    
 }
 
-uint8_t cellsAvailable(Grid* g){
+uint8_t cellsAvailable(Grid const * const g){
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
             if(!g->tiles[x][y]){
@@ -194,7 +211,7 @@ uint8_t cellsAvailable(Grid* g){
     return 0;
 }
 
-Tile* cellContent(Grid* g, Position p){
+Tile* cellContent(Grid const * const g, Position const p){
     if(withinBounds(p)){
         return g->tiles[p.x][p.y];
     } else {
@@ -202,18 +219,16 @@ Tile* cellContent(Grid* g, Position p){
     }
 }
 
-uint8_t cellOccupied(Grid* g, Position p){
+uint8_t cellOccupied(Grid const * const g, Position const p){
     return !!g->tiles[p.x][p.y];
 }
 
-void insertTile(Grid* g, Tile* t){
-    //printf("Inserting tile at (%d, %d)\n", t->position.x, t->position.y);
+void insertTile(Grid* const g, Tile* const t){
     g->tiles[t->position.x][t->position.y] = t;
 }
 
-void removeTile(Grid* g, Tile* t){
+void removeTile(Grid* const g, Tile const * const t){
     g->tiles[t->position.x][t->position.y] = NULL;
-    //free(t);
 }
 
 void eachCell(Grid* g, void fcn(Position p, Tile* t)){
@@ -224,6 +239,37 @@ void eachCell(Grid* g, void fcn(Position p, Tile* t)){
     }
 }
 
+
+// --- USERPROFILE FUNCTIONS --- //
+uint32_t getBestScore(UserProfile const * const p){
+    return p->game_2048.bestScore;
+}
+
+void setBestScore(UserProfile* const p, uint32_t const score){
+    p->game_2048.bestScore = score;
+}
+
+void setGameState(UserProfile* const p, Grid const * const g){
+    for(int x = 0; x < SIZE; x++){
+        for(int y = 0; y < SIZE; y++){
+            if(g->tiles[x][y]){
+                p->game_2048.grid[x][y] = g->tiles[x][y]->value;
+            } else {
+                p->game_2048.grid[x][y] = 0;
+            }
+        }
+    }
+}
+
+void clearGameState(UserProfile* const p){
+    for(int x = 0; x < SIZE; x++){
+        for(int y = 0; y < SIZE; y++){
+            p->game_2048.grid[x][y] = 0;
+        }
+    }
+}
+
+
 // --- GAME MANAGER FUNCTIONS --- //
 GameManager* new_GameManager(){
     GameManager* gm = malloc(sizeof(GameManager));
@@ -232,14 +278,15 @@ GameManager* new_GameManager(){
     gm->grid            = new_Grid();
     gm->numStartTiles   = NUM_START_TILES;
     gm->actuator        = new_Actuator(ActuatorTypeFrameBuffer);
+    gm->userProfile     = malloc(sizeof(UserProfile));
+    *gm->userProfile    = getCurrentUserProfile();
     
     addStartTiles(gm);
     
     return gm;
 }
 
-
-void delete_GameManager(GameManager** gm){
+void delete_GameManager(GameManager* const * const gm){
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
             if((*gm)->grid->tiles[x][y]){
@@ -251,26 +298,28 @@ void delete_GameManager(GameManager** gm){
     }
     free((*gm)->grid);
     free((*gm)->actuator);
+    free((*gm)->userProfile);
     free(*gm);
     return;
 }
 
-uint8_t isGameTerminated(GameManager* gm){
+uint8_t isGameTerminated(GameManager const * const gm){
     return gm->over || (gm->won && !gm->keepPlaying);
 }
 
-void addStartTiles(GameManager* gm){
+void addStartTiles(GameManager* const gm){
     for(uint8_t i = 0; i < gm->numStartTiles; i++){
         addRandomTile(gm);
     }
 }
 
-void addRandomTile(GameManager* gm){
+void addRandomTile(GameManager* const gm){
     Tile* t = new_Tile(randomAvailablePosition(gm));
+    t->value = (rand() % 10) < 9 ? 2 : 4;
     insertTile(gm->grid, t);
 }
 
-Position randomAvailablePosition(GameManager* gm){
+Position randomAvailablePosition(GameManager const * const gm){
     Position p;
     do {
         p.x = rand() % SIZE;
@@ -279,21 +328,20 @@ Position randomAvailablePosition(GameManager* gm){
     return p;
 }
 
-
-
-void actuate(GameManager* gm){
-    /*
-    if(gm->storageManager->getBestScore() < gm->score){
-        gm->storageManager->setBestScore(gm->score);
+void actuate(GameManager* const gm){
+    
+    if(getBestScore(gm->userProfile) < gm->score){
+        setBestScore(gm->userProfile, gm->score);
     }
-    */
-    /*
+    
+    
     if(gm->over){
-        gm->storageManager->clearGameState();
+        clearGameState(gm->userProfile);
     } else {
-        gm->storageManager->setGameState(serialize(gm));
+        setGameState(gm->userProfile, gm->grid);
     }
-    */
+    
+    writeCurrentUserProfile(gm->userProfile);   // EEPROM wear?
 
     gm->actuator->actuate(
         gm->grid,
@@ -301,13 +349,13 @@ void actuate(GameManager* gm){
             .score      = gm->score,
             .over       = gm->over,
             .won        = gm->won,
-            //.bestScore  = gm->storageManager->getBestScore(),
+            .bestScore  = getBestScore(gm->userProfile),
             .terminated = isGameTerminated(gm),
         }
     );
 }
 
-void prepareTiles(GameManager* gm){
+void prepareTiles(GameManager* const gm){
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
             if(gm->grid->tiles[x][y]){
@@ -321,13 +369,13 @@ void prepareTiles(GameManager* gm){
     }
 }
 
-void moveTile(GameManager* gm, Tile* t, Position p){
+void moveTile(GameManager* const gm, Tile* const t, Position const p){
     gm->grid->tiles[t->position.x][t->position.y] = NULL;
     gm->grid->tiles[p.x][p.y] = t;
     updatePosition(t, p);
 }
 
-void move(GameManager* gm, Direction d){
+void move(GameManager* const gm, Direction const d){
     if(isGameTerminated(gm)) return;
     
     Vector      v   = getVector(d);
@@ -403,7 +451,7 @@ void move(GameManager* gm, Direction d){
     }
 }
 
-FarthestPosition findFarthestPosition(GameManager* gm, Position p, Vector v){
+FarthestPosition findFarthestPosition(GameManager const * const gm, Position p, Vector const v){
     Position previous;
     do {
         previous = p;
@@ -413,17 +461,17 @@ FarthestPosition findFarthestPosition(GameManager* gm, Position p, Vector v){
     return (FarthestPosition){.farthest = previous, .next = p};
 }
 
-uint8_t movesAvailable(GameManager* gm){
+uint8_t movesAvailable(GameManager const * const gm){
     return cellsAvailable(gm->grid) || tileMatchesAvailable(gm);
 }
 
-uint8_t tileMatchesAvailable(GameManager* gm){
+uint8_t tileMatchesAvailable(GameManager const * const gm){
     Tile* t;
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
             t = gm->grid->tiles[x][y];
             if(t){
-                for(int dir = 0; dir < 4; dir++){ // foreach(Direction)
+                for(int dir = 0; dir < 4; dir++){
                     Vector v    = getVector(dir);
                     Position p  = {.x = x + v.x, .y = y + v.y};
                     Tile* other = cellContent(gm->grid, p);
@@ -441,17 +489,17 @@ uint8_t tileMatchesAvailable(GameManager* gm){
 // --- VECTOR FUNCTIONS --- //
 Vector getVector(Direction d){
     switch(d){
-    case dir_up:    return (Vector){.y = 0,  .x = -1};
-    case dir_right: return (Vector){.y = 1,  .x = 0 };
-    case dir_down:  return (Vector){.y = 0,  .x = 1 };
-    case dir_left:  return (Vector){.y = -1, .x = 0 };
-    default:        return (Vector){.y = 0,  .x = 0 };
+    case dir_up:    return (Vector){.x = 0,  .y = -1};
+    case dir_right: return (Vector){.x = 1,  .y = 0 };
+    case dir_down:  return (Vector){.x = 0,  .y = 1 };
+    case dir_left:  return (Vector){.x = -1, .y = 0 };
+    default:        return (Vector){.x = 0,  .y = 0 };
     }
 }
 
 
 // --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(uint8_t type){
+Actuator* new_Actuator(uint8_t const type){
     Actuator* a = malloc(sizeof(Actuator));
     memset(a, 0, sizeof(Actuator));
 
@@ -464,13 +512,21 @@ Actuator* new_Actuator(uint8_t type){
     return a;
 }
 
-void actuatorDrawBackground(Actuator* a){
+#define SLIDER_L_BBOX           69,  85,  54,  62
+#define SLIDER_L_TEXT_CURSOR    71,  56
+#define SLIDER_R_BBOX           111, 126, 54,  62
+#define SLIDER_R_TEXT_CURSOR    113, 56
+
+void actuatorDrawBackground(Actuator const * const a){
     if(a->actuate == actuateFrameBuffer){
         for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
             for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
-                draw_rectangle(0, x, 0, y);
+                frame_buffer_draw_rectangle(0, x, 0, y);
             }
         }
+        
+        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+        frame_buffer_set_font_spacing(-2, 0);
 
         frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 0);
         frame_buffer_printf("Score");
@@ -478,79 +534,87 @@ void actuatorDrawBackground(Actuator* a){
         frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 20);
         frame_buffer_printf("Best");
         
-        frame_buffer_set_cursor(2, 56);
-        frame_buffer_printf("Quit");
+        frame_buffer_draw_rectangle(SLIDER_L_BBOX);
+        frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+        frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
+        frame_buffer_draw_char(17);     // Quit
 
         frame_buffer_render();
     }
 }
 
-void actuateFrameBuffer(Grid* g, ActuatorMetadata am){
+void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
 
     frame_buffer_set_font_spacing(-2, 0);
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
-            clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
-            if(g->tiles[y][x]){
-                frame_buffer_set_cursor(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+3);
-                frame_buffer_printf("%2d", 1 << g->tiles[y][x]->value);
+            frame_buffer_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
+            if(g->tiles[x][y]){
+                frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
+                frame_buffer_set_cursor(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
+                frame_buffer_draw_char(g->tiles[x][y]->value);
             }
         }
     }
 
-    frame_buffer_set_cursor(GRID_SIZE_X*4 + 2, 8);
+    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+    frame_buffer_set_font_spacing(-2, 0);
+
+    frame_buffer_set_cursor(GRID_SIZE_X*SIZE + 2, 8);
     frame_buffer_printf("%6ld", am.score);
 
-    frame_buffer_set_cursor(GRID_SIZE_X*4 + 2, 28);
+    frame_buffer_set_cursor(GRID_SIZE_X*SIZE + 2, 28);
     frame_buffer_printf("%6ld", am.bestScore);
 
     if(am.terminated){
         if(am.over){
             frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor(2, 18);
+            frame_buffer_set_cursor(2, 25);
             frame_buffer_printf("Game over!");
 
             frame_buffer_set_font_spacing(-1, 0);
             frame_buffer_set_cursor(11, 46);
             frame_buffer_printf("New game?");
+                        
+            frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
 
-            clear_area(0, 127, 56, 63);
+            frame_buffer_draw_rectangle(SLIDER_L_BBOX);
+            frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+            frame_buffer_draw_char(15);     // No
+            frame_buffer_draw_rectangle(SLIDER_R_BBOX);
+            frame_buffer_set_cursor(SLIDER_R_TEXT_CURSOR);
+            frame_buffer_draw_char(16);     // Yes
 
-            frame_buffer_set_cursor(2, 56);
-            frame_buffer_printf("No");
-
-            frame_buffer_set_cursor(100, 56);
-            frame_buffer_printf("Yes");
         } else if(am.won){
             frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor(9, 18);
+            frame_buffer_set_cursor(9, 25);
             frame_buffer_printf("You win!");
 
             frame_buffer_set_font_spacing(-1, 0);
             frame_buffer_set_cursor(11, 46);
             frame_buffer_printf("Keep Playing?");
+            
+            frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
 
-            clear_area(0, 127, 56, 63);
-
-            frame_buffer_set_cursor(2, 56);
-            frame_buffer_printf("No");
-
-            frame_buffer_set_cursor(100, 56);
-            frame_buffer_printf("Yes");
+            frame_buffer_draw_rectangle(SLIDER_L_BBOX);
+            frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+            frame_buffer_draw_char(15);     // No
+            frame_buffer_draw_rectangle(SLIDER_R_BBOX);
+            frame_buffer_set_cursor(SLIDER_R_TEXT_CURSOR);
+            frame_buffer_draw_char(16);     // Yes
         }
     }
     frame_buffer_render();
 }
 
-
-void actuateUART(Grid* g, ActuatorMetadata am){
+void actuateUART(Grid const * const g, ActuatorMetadata const am){
     printf("+----+----+----+----+\n");
-    for(int x = 0; x < SIZE; x++){
+    for(int y = 0; y < SIZE; y++){
         printf("|");
-        for(int y = 0; y < SIZE; y++){
+        for(int x = 0; x < SIZE; x++){
             if(g->tiles[x][y]){
                 printf("%4d|", 1 << g->tiles[x][y]->value);
-                } else {
+            } else {
                 printf("    |");
             }
         }
@@ -560,29 +624,8 @@ void actuateUART(Grid* g, ActuatorMetadata am){
     printf("Score: %5ld\n", am.score);
 }
 
-// --- MISC --- //
-/*
-void printGrid(GameManager* gm){
-    frame_buffer_clear();
-    frame_buffer_printf("+----+----+----+----+\n");
-    for(int x = 0; x < SIZE; x++){
-        frame_buffer_printf("|");
-        for(int y = 0; y < SIZE; y++){
-            if(gm->grid->tiles[x][y]){
-                frame_buffer_printf("%4d|", 1 << gm->grid->tiles[x][y]->value);
-            } else {
-                frame_buffer_printf("    |");
-            }
-        }
-        frame_buffer_printf("\n");
-    }
-    frame_buffer_printf("+----+----+----+----+\n");
-    frame_buffer_printf("Score: %5d", gm->score);
-    frame_buffer_render();
-}
-*/
 
-
+// --- MAIN / GAME --- //
 
 void game_2048(){
     srand(TCNT3);
