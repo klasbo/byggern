@@ -12,7 +12,7 @@
 #include "drivers/analog/slider.h"
 #include "drivers/display/oled.h"
 #include "drivers/display/frame_buffer.h"
-#include "drivers/display/font8x8.h"
+#include "drivers/display/fonts/font8x8.h"
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
