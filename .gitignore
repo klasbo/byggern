@@ -1,3 +1,6 @@
 
-/ATmega162/Debug/*
-/ArduinoMega2560/Debug/*
+/*/Debug/*
+/*/Release/*
+
+*.atsuo
+*.obj
