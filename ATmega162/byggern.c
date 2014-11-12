@@ -19,6 +19,8 @@
 #include "drivers/communication/uart.h"
 #include "drivers/analog/analog_read.h"
 
+#include "userprofile/userprofile.h"
+
 
 #define if_assignment_modifies(lval, rval) \
     typeof(lval) _##lval = lval; \
@@ -30,8 +32,10 @@
     &__fn; \
 })
 
+extern void createDefaultProfile(void);
 
 int main(void){
+    //createDefaultProfile();
     // TODO: move this somewhere...
     TCCR3B |= 1<<(CS30);
     
@@ -48,6 +52,7 @@ int main(void){
     menunode_t* prev_menu   = 0;
     
     JOY_dir_t   dirn        = JOY_get_direction();
+
     
     while(1){
         if_assignment_modifies(dirn, JOY_get_direction()){
@@ -61,29 +66,23 @@ int main(void){
         }
         
         if_assignment_modifies(prev_menu, menu){
-            OLED_reset();
-            if(menu != get_menu()){
-                foreach_parent_reverse(menu_close(menu), lambda(void, (menunode_t* m, int lvl){
-                        for(int i = 0; i <= lvl; i++){
-                            OLED_printf_P(PSTR("  "));
-                        }
-                        OLED_printf_P(PSTR("%s\n"), m->item.name);
-                    })
-                );
-            }
             
-            for(int i = 0; i < menu_depth(menu); i++){
-                OLED_printf_P(PSTR("  "));
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_clear();
+            frame_buffer_printf("%s\n", menu_close(menu)->item.name);
+            for(int idx = 0; idx < menu_close(menu)->num_submenus; idx++){
+                if(menu_open_submenu(menu_close(menu), idx) == menu){
+                    frame_buffer_printf("> ");
+                    } else {
+                    frame_buffer_printf("  ");
+                }
+                frame_buffer_printf("%s\n", menu_open_submenu(menu_close(menu), idx)->item.name);
             }
-            OLED_printf_P(PSTR(" >%s\n"), menu->item.name);
-            
-            foreach_submenu(menu, lambda(void, (menunode_t* m, int idx){
-                    for(int i = 0; i < menu_depth(m); i++){
-                        OLED_printf_P(PSTR("  "));
-                    }
-                    OLED_printf_P(PSTR("%d %s\n"), idx, m->item.name);
-                })
-            );
+            if(menu->item.fun){
+                frame_buffer_set_cursor(10*FONT8x8_WIDTH, 7*FONT8x8_HEIGHT);
+                frame_buffer_printf("[Open]");
+            }
+            frame_buffer_render();
         }
 		
         //TODO: use joystick button

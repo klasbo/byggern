@@ -17,18 +17,18 @@ void sram_test(void){
     
     uint16_t seed = TCNT3;
 
-    srandom(seed);
+    srand(seed);
     for (int i = 0; i < ext_ram_size; i++) {
-        testvalue = random();
+        testvalue = rand();
         ext_ram[i] = testvalue;
         if (ext_ram[i] != testvalue) {
             //printf_P(PSTR("SRAM error (write phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
             werrors++;
         }
     }
-    srandom(seed);
+    srand(seed);
     for (int i = 0; i < ext_ram_size; i++) {
-        testvalue = random();
+        testvalue = rand();
         if (ext_ram[i] != testvalue) {
             //printf_P(PSTR("SRAM error (read phase): ext_ram[%4d] = %02X (should be %02X)\n"), i, ext_ram[i], testvalue);
             rerrors++;

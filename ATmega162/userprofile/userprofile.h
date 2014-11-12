@@ -15,7 +15,7 @@ struct UserProfile {
         uint8_t     grid[4][4];
     } game_2048;
     struct {
-        
+        uint8_t settings;
     } game_pong;
 };
 
@@ -28,3 +28,6 @@ UserProfile getCurrentUserProfile(void);
 void writeUserProfile(UserProfile* p, uint8_t user);
 void writeCurrentUserProfile(UserProfile* p);
 void deleteUserProfile(uint8_t user);
+void user_delete(void);
+void user_new(void);
+void user_login(void);

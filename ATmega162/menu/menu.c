@@ -8,11 +8,30 @@ extern void analog_test(void);
 extern void can_test(void);
 extern void game_2048(void);
 extern void game_pong(void);
+extern void user_login(void);
+extern void user_new(void);
+extern void user_delete(void);
 
 static menunode_t* mainMenu = &(menunode_t){
     .item = { .name = "Main Menu",                                  },
     .num_submenus = 3,
     .submenus = {
+		 &(menunode_t){
+			.item = { .name = "Users",                               },
+			.num_submenus = 3,
+			.submenus = {
+				&(menunode_t){
+					.item = { .name = "Login",		.fun = &user_login	},
+				},
+				&(menunode_t){
+					.item = { .name = "New User",	.fun = &user_new	},
+				},
+				&(menunode_t){
+					.item = { .name = "Delete user",.fun = &user_delete },
+				},
+			},	 
+		 },
+		
         &(menunode_t){
             .item = { .name = "Settings",                               },
         },
@@ -27,7 +46,7 @@ static menunode_t* mainMenu = &(menunode_t){
                     .item = { .name = "2048",       .fun = &game_2048       },
                 },
             },
-        },
+        },/*
         &(menunode_t){
             .item = { .name = "Tests",                                  },
             .num_submenus = 3,
@@ -42,7 +61,7 @@ static menunode_t* mainMenu = &(menunode_t){
                     .item = { .name = "CAN",        .fun = &can_test        },
                 },
             },
-        },
+        },*/
     },
 };
 

@@ -282,7 +282,22 @@ GameManager* new_GameManager(){
     gm->userProfile     = malloc(sizeof(UserProfile));
     *gm->userProfile    = getCurrentUserProfile();
     
-    addStartTiles(gm);
+    uint8_t foundStoredGame = 0;
+
+    for(int x = 0; x < SIZE; x++){
+        for(int y = 0; y < SIZE; y++){
+            if(gm->userProfile->game_2048.grid[x][y]){
+                Tile* t = new_Tile((Position){.x = x, .y = y});
+                t->value = gm->userProfile->game_2048.grid[x][y];
+                insertTile(gm->grid, t);
+                foundStoredGame = 1;
+            }
+        }
+    }
+
+    if(!foundStoredGame){
+        addStartTiles(gm);
+    }
     
     return gm;
 }
@@ -316,7 +331,7 @@ void addStartTiles(GameManager* const gm){
 
 void addRandomTile(GameManager* const gm){
     Tile* t = new_Tile(randomAvailablePosition(gm));
-    t->value = (rand() % 10) < 9 ? 2 : 4;
+    t->value = ((rand() % 10) < 9) ? 1 : 2;
     insertTile(gm->grid, t);
 }
 
@@ -336,13 +351,12 @@ void actuate(GameManager* const gm){
     }
     
     
-    if(gm->over){
+    if(isGameTerminated(gm)){
         clearGameState(gm->userProfile);
     } else {
         setGameState(gm->userProfile, gm->grid);
     }
     
-    writeCurrentUserProfile(gm->userProfile);   // EEPROM wear?
 
     gm->actuator->actuate(
         gm->grid,
@@ -520,6 +534,7 @@ Actuator* new_Actuator(uint8_t const type){
 
 void actuatorDrawBackground(Actuator const * const a){
     if(a->actuate == actuateFrameBuffer){
+        frame_buffer_clear();
         for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
             for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
                 frame_buffer_draw_rectangle(0, x, 0, y);
@@ -693,7 +708,7 @@ void game_2048(){
             }
         }
     }
-    printf("2048 session over\n");
+    writeCurrentUserProfile(gm->userProfile);
     
     return;
 }
