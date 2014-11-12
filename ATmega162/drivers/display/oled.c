@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "oled.h"
-#include "font8x8.h"
+#include "fonts/font8x8.h"
 #include "../memory_layout.h"
 
 #define NUM_CHARS_PER_LINE      (COLUMNS / FONT8x8_WIDTH)

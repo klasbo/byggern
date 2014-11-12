@@ -12,7 +12,7 @@
 #include "drivers/analog/slider.h"
 #include "drivers/display/oled.h"
 #include "drivers/display/frame_buffer.h"
-#include "drivers/display/font8x8.h"
+#include "drivers/display/fonts/font8x8.h"
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
@@ -30,31 +30,12 @@
     &__fn; \
 })
 
-// TODO: SRAM region allocator? Prevent overwriting the frame buffer
-
-
-extern void can_test(void);
-
-#define CAN_JOYSTICK_ID 3
-#define CAN_JOYSTICK_LENGTH 2
-
-can_msg_t JOY_CAN_msg(void){
-    can_msg_t msg;
-    msg.ID      = CAN_JOYSTICK_ID;
-    msg.length  = CAN_JOYSTICK_LENGTH;
-    JOY_pos_t p = JOY_get_position();
-    msg.data[0] = p.x;
-    msg.data[1] = p.y;
-    return msg;
-}
-
 
 int main(void){
     // TODO: move this somewhere...
     TCCR3B |= 1<<(CS30);
     
     printf_P(PSTR("\nstarted!\n"));
-        
     
     //frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     //frame_buffer_set_font_spacing(-2, 4);
@@ -108,8 +89,8 @@ int main(void){
         //TODO: use joystick button
 		
         if(SLI_get_right_button() && menu->item.fun){
-            OLED_reset();
-            OLED_printf("\nopening..\n");
+            //OLED_reset();
+            //OLED_printf("\nopening..\n");
             menu->item.fun();
             prev_menu = NULL;
         }
