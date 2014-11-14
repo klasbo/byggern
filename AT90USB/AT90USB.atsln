@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "AT90USB", "AT90USB.cproj", "{5327E5CF-4E7F-4DDC-A6DC-EB06D8E7D46D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5327E5CF-4E7F-4DDC-A6DC-EB06D8E7D46D}.Debug|AVR.ActiveCfg = Debug|AVR
+		{5327E5CF-4E7F-4DDC-A6DC-EB06D8E7D46D}.Debug|AVR.Build.0 = Debug|AVR
+		{5327E5CF-4E7F-4DDC-A6DC-EB06D8E7D46D}.Release|AVR.ActiveCfg = Release|AVR
+		{5327E5CF-4E7F-4DDC-A6DC-EB06D8E7D46D}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
