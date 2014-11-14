@@ -37,6 +37,7 @@ int main(void){
     
     //_delay_ms(5000);
 
+
     menunode_t* menu        = menu_open(get_menu());
     menunode_t* prev_menu   = 0;
     
@@ -47,13 +48,16 @@ int main(void){
         if_assignment_modifies(dirn, JOY_get_direction()){
             switch(dirn){
                 case RIGHT: menu = menu_open(menu);     break;
-                case LEFT:  menu = menu_close(menu);    break;
+                case LEFT:  menu = menu_close(menu) == get_menu() ? 
+                                    menu :
+                                    menu_close(menu);
+                            break;
                 case DOWN:  menu = menu_next(menu);     break;
                 case UP:    menu = menu_prev(menu);     break;
                 default: break;
             }
         }
-        
+
         if_assignment_modifies(prev_menu, menu){            
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
             frame_buffer_clear();

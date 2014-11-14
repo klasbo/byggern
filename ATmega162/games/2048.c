@@ -1,9 +1,12 @@
+#include "../config.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "../drivers/analog/joystick.h"
 #include "../drivers/analog/slider.h"
@@ -13,10 +16,11 @@
 #include "../userprofile/userprofile.h"
 
 
-#define SIZE            4
-#define NUM_START_TILES 2
-#define GRID_SIZE_X     16
-#define GRID_SIZE_Y     15
+#define SIZE                    4
+#define NUM_START_TILES         2
+#define GRID_SIZE_X             16
+#define GRID_SIZE_Y             15
+#define ANIMATION_REFRESH_HZ    24
 
 uint8_t traversal_asc[SIZE] = {0, 1, 2, 3};
 uint8_t traversal_dsc[SIZE] = {3, 2, 1, 0};
@@ -73,6 +77,7 @@ struct Grid {
 */
 struct Actuator {
     void        (*actuate)(Grid const * const g, ActuatorMetadata const am);
+    uint8_t     animationPhase;
 };
 #define ActuatorTypeFrameBuffer 1
 #define ActuatorTypeUART        2
@@ -118,6 +123,14 @@ struct Vector {
     int8_t      y;
 };
 
+
+
+
+GameManager* gm;    // The GameManager instance needs to be accessible from interrupts
+
+
+
+
 // --- POSITION FUNCTIONS --- //
 uint8_t withinBounds(Position const p);
 uint8_t positionsEqual(Position const first, Position const second);
@@ -159,6 +172,8 @@ Actuator* new_Actuator(uint8_t const type);
 void actuatorDrawBackground(Actuator const * const a);
 void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am);
 void actuateUART(Grid const * const g, ActuatorMetadata const am);
+void startNewAnimation(Actuator* const a);
+void haltAnimation(Actuator* const a);
 
 
 
@@ -181,6 +196,7 @@ Tile* new_Tile(Position const p){
     Tile* t = malloc(sizeof(Tile));
     memset(t, 0, sizeof(Tile));
     t->position = p;
+    t->previousPosition = (Position){-1, -1};
     t->value    = 1;
     return t;
 }
@@ -566,6 +582,22 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
         for(int y = 0; y < SIZE; y++){
             frame_buffer_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
             if(g->tiles[x][y]){
+                /*
+                TODO: Animation: 
+                    Add tile (prevPosition == {-1, -1})
+                    Merge from
+                    Otherwise no animation
+                */
+
+                if(!positionsEqual(g->tiles[x][y]->position, g->tiles[x][y]->previousPosition)){
+                    printf("Tile moved from (%d, %d) to (%d, %d)\n",
+                        g->tiles[x][y]->previousPosition.x,
+                        g->tiles[x][y]->previousPosition.y,
+                        g->tiles[x][y]->position.x,
+                        g->tiles[x][y]->position.y
+                    );
+                }
+
                 frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
                 frame_buffer_set_cursor(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
                 frame_buffer_draw_char(g->tiles[x][y]->value);
@@ -584,12 +616,12 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
 
     if(am.terminated){
         if(am.over){
-            frame_buffer_set_font_spacing(0, 0);
+            frame_buffer_set_font_spacing(-1, 0);
             frame_buffer_set_cursor(2, 25);
             frame_buffer_printf("Game over!");
 
             frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor(11, 46);
+            frame_buffer_set_cursor(16, 40);
             frame_buffer_printf("New game?");
                         
             frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
@@ -602,12 +634,12 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
             frame_buffer_draw_char(16);     // Yes
 
         } else if(am.won){
-            frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor(9, 25);
+            frame_buffer_set_font_spacing(-1, 0);
+            frame_buffer_set_cursor(4, 25);
             frame_buffer_printf("You win!");
 
             frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor(11, 46);
+            frame_buffer_set_cursor(16, 40);
             frame_buffer_printf("Keep Playing?");
             
             frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
@@ -640,12 +672,31 @@ void actuateUART(Grid const * const g, ActuatorMetadata const am){
     printf("Score: %5ld\n", am.score);
 }
 
+void startNewAnimation(Actuator* const a){
+    a->animationPhase = 0;
+    TCNT3 = 0;                  // Reset the timer counter
+    ETIMSK  |=  (1 << OCIE3A);  // Enable interrupt on OCR3A match
+}
+
+void haltAnimation(Actuator* const a){
+    ETIMSK  &= ~(1 << OCIE3A);  // Disable interrupt on OCR3A match
+}
+
 
 // --- MAIN / GAME --- //
 
 void game_2048(){
-    srand(TCNT3);
-    GameManager_scoped* gm = new_GameManager();
+    srand(TCNT3);   // assuming timer 3 has started at some point prior to this
+
+    sei();
+    OCR3A   =   (F_CPU/256)/ANIMATION_REFRESH_HZ;
+    TCCR3B  |=  (1 << WGM32);   // Clear TCNT1 on compare match
+    TCCR3B  |=  (1 << CS32);    // Enable timer, 256x prescaler
+    TCCR3B  &= ~(1 << CS31);
+    TCCR3B  &= ~(1 << CS30);
+
+
+    gm = new_GameManager();
     
     Direction   inputDirn       = dir_down;
     JOY_dir_t   joyDirn         = JOY_get_direction();
@@ -708,7 +759,14 @@ void game_2048(){
             }
         }
     }
-    writeCurrentUserProfile(gm->userProfile);
     
+    writeCurrentUserProfile(gm->userProfile);
+
+    delete_GameManager(&gm);
+
     return;
+}
+
+ISR(TIMER3_COMPA_vect){
+    
 }
