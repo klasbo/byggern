@@ -14,23 +14,12 @@
 #include "drivers/display/frame_buffer.h"
 #include "drivers/display/fonts/font8x8.h"
 #include "drivers/memory_layout.h"
-#include "menu/menu.h"
 #include "drivers/communication/can/can.h"
-#include "drivers/communication/uart.h"
-#include "drivers/analog/analog_read.h"
-
+#include "menu/menu.h"
 #include "userprofile/userprofile.h"
+#include "macros.h"
 
 
-#define if_assignment_modifies(lval, rval) \
-    typeof(lval) _##lval = lval; \
-    if( (_##lval = lval), ((lval = rval) != _##lval) )
-
-#define lambda(returnType, body) \
-({ \
-    returnType __fn body \
-    &__fn; \
-})
 
 extern void createDefaultProfile(void);
 
@@ -48,7 +37,7 @@ int main(void){
     
     //_delay_ms(5000);
 
-    menunode_t* menu        = get_menu();
+    menunode_t* menu        = menu_open(get_menu());
     menunode_t* prev_menu   = 0;
     
     JOY_dir_t   dirn        = JOY_get_direction();
@@ -65,15 +54,14 @@ int main(void){
             }
         }
         
-        if_assignment_modifies(prev_menu, menu){
-            
+        if_assignment_modifies(prev_menu, menu){            
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
             frame_buffer_clear();
             frame_buffer_printf("%s\n", menu_close(menu)->item.name);
             for(int idx = 0; idx < menu_close(menu)->num_submenus; idx++){
                 if(menu_open_submenu(menu_close(menu), idx) == menu){
                     frame_buffer_printf("> ");
-                    } else {
+                } else {
                     frame_buffer_printf("  ");
                 }
                 frame_buffer_printf("%s\n", menu_open_submenu(menu_close(menu), idx)->item.name);
@@ -85,18 +73,11 @@ int main(void){
             frame_buffer_render();
         }
 		
-        //TODO: use joystick button
 		
-        if(SLI_get_right_button() && menu->item.fun){
-            //OLED_reset();
-            //OLED_printf("\nopening..\n");
+        if(menu->item.fun  &&  SLI_get_right_button()){
             menu->item.fun();
-            prev_menu = NULL;
+            prev_menu = NULL;   // hack to make the menu draw again
         }
-		
-		
-        //TODO: delay until / periodic
-        _delay_ms(20);
     }
     
 }

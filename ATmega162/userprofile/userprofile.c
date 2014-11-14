@@ -12,8 +12,8 @@
 #include "../drivers/display/frame_buffer.h"
 
 
-static uint8_t              currentUser;
-UserProfile EEMEM    userProfiles[MAX_NUM_USERS];
+static uint8_t          currentUser;
+UserProfile EEMEM       userProfiles[MAX_NUM_USERS];
 
 void createDefaultProfile(void){
     UserProfile p;
@@ -53,7 +53,7 @@ void writeCurrentUserProfile(UserProfile* p){
 
 void deleteUserProfile(uint8_t user){
     if(user > 0  &&  user < MAX_NUM_USERS  &&  user != currentUser){
-        // memset not available for eeprom?
+        // (memset not available for eeprom)
         UserProfile p;
         memset(&p, 0, sizeof(UserProfile));
         eeprom_write_block(&p, &userProfiles[user], sizeof(UserProfile));
@@ -63,13 +63,15 @@ void deleteUserProfile(uint8_t user){
 
 
 
-
-void userIterator(char* info, void function(uint8_t selected)){
-    void renderUsernames(char* info){
+/** Convenience function: Display, navigate (joystick) and select from (right slider) a list of all usernames,
+*   and apply action to the selected UserProfile
+*/
+void userIterator(char* actionDescription, void action(uint8_t selected)){
+    void renderUsernames(char* actionDescription){
         frame_buffer_clear();
         frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
         //frame_buffer_set_font_spacing(0, 0);
-        frame_buffer_printf("%s\n", info);
+        frame_buffer_printf("%s\n", actionDescription);
         for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
             if(i == getCurrentUser()){
                 frame_buffer_printf("-");
@@ -77,17 +79,17 @@ void userIterator(char* info, void function(uint8_t selected)){
             frame_buffer_set_cursor(2*FONT8x8_WIDTH, (i+1) * FONT8x8_HEIGHT);
             frame_buffer_printf("%s\n", getUserProfile(i).username);
         }
-        frame_buffer_printf("[Quit]   [Sel]");
+        frame_buffer_printf("[Back]     [Sel]");
         frame_buffer_render();
     }
 
-    renderUsernames(info);
+    renderUsernames(actionDescription);
     
     JOY_dir_t joyDirnPrev   = NEUTRAL;
     JOY_dir_t joyDirn       = NEUTRAL;
     
     uint8_t selected = 0;
-    uint8_t selectable = 0;
+    uint8_t SLIRightButtonReleased = 0;
     
     while(1){
         frame_buffer_set_cursor(1*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
@@ -110,11 +112,11 @@ void userIterator(char* info, void function(uint8_t selected)){
             }
         }
         if(!SLI_get_right_button()){
-            selectable = 1;
+            SLIRightButtonReleased = 1;
         }
-        if(SLI_get_right_button() && selectable){
-            function(selected);
-            renderUsernames(info);
+        if(SLI_get_right_button() && SLIRightButtonReleased){
+            action(selected);
+            renderUsernames(actionDescription);
         }
         if(SLI_get_left_button()){
             return;
@@ -134,15 +136,17 @@ void user_new(void){
         void fn(uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
                 frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
-                frame_buffer_printf("[Back]    [Ok]");
+                frame_buffer_printf("[Back]      [Ok]");
                 frame_buffer_render();
+
                 UserProfile newUser = getUserProfile(selected);
-                // edit newUser.username
-                uint8_t     quitable        = 0;
+
+                uint8_t     SLIRightButtonReleased = 0;
                 char        c               = 'a';
                 uint8_t     pos             = 0;
                 JOY_dir_t   joyDirnPrev     = NEUTRAL;
                 JOY_dir_t   joyDirn         = NEUTRAL;
+
                 while(1){
                     newUser.username[pos] = c;
                     frame_buffer_set_cursor(2*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
@@ -177,9 +181,9 @@ void user_new(void){
                         }
                     }
                     if(!SLI_get_right_button()){
-                        quitable = 1;
+                        SLIRightButtonReleased = 1;
                     }
-                    if(SLI_get_right_button() && quitable){
+                    if(SLI_get_right_button() && SLIRightButtonReleased){
                         writeUserProfile(&newUser, selected);
                         setCurrentUser(selected);
                         return;

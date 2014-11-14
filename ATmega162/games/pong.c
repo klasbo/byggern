@@ -7,7 +7,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "../drivers/analog/analog_read.h"
 #include "../drivers/communication/can/can.h"
 #include "../../ArduinoMega2560/can_types.h"
 #include "../fifoqueue/fifoqueue.h"
@@ -17,27 +16,6 @@
 
 
 #define pollRate_hz 4
-
-/*
-usersettings users[MAX_NUM_USERS];
-usersettings {
-    char username[MAX_USERNAME_LENGTH];
-    struct {
-        uint32_t    highscore;
-
-        uint8_t     inputMap[3];
-
-        uint8_t     (*inputFcnServo)(void);
-        int8_t      (*inputFcnMotorSpeed)(void);
-        uint8_t     (*inputFcnSolenoid)(void);
-    } game_pong;
-    struct {
-        
-    } game_2048;
-}
-
-usersettings* currentUser;
-*/
 
 
 
