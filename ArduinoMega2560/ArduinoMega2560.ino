@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <Servo/Servo.h>
 #include <Wire/Wire.h>
+#include "pid.h"
 
 
 #include "can_types.h"
@@ -50,18 +51,30 @@ int main(void){
 	//delay(2000);
 	//printf("max left and right: %d %d\n",test.max_l, test.max_r);
 
+
+	PID mypid(1,1,0, -255, 255, 0.10);
     Servo s;
     s.attach(6);
     can_msg_t   msg;
 	ControlCmd  cmd;
+	int16_t position;
+	int16_t maxSpeed=0;
+	int16_t speed=0;
+	int16_t reference_speed=0;
+	int16_t u = 0;
 	while(1){
-		msg	 = CAN_recv_blocking();        
-
+		msg	 = CAN_recv_blocking();
+		position = motor_read();
+		speed =mypid.calculate_speed(position);
+		u = mypid.Compute(speed, reference_speed);
+		printf("u %d\n",u );
+		motor_set_speed(cmd.motorSpeed);
         switch(msg.ID){
         case CANID_ControlCmd:
             memcpy(&cmd, msg.data, msg.length);
-            printf("received can ControlCmd: (%d, %d, %d)\n", cmd.motorSpeed, cmd.servoPos, cmd.solenoid);
-            motor_set_speed(cmd.motorSpeed);
+            //printf("received can ControlCmd: (%d, %d, %d)\n", cmd.motorSpeed, cmd.servoPos, cmd.solenoid);
+			reference_speed = cmd.motorSpeed;
+            //motor_set_speed(cmd.motorSpeed);
             s.write(cmd.servoPos);
             digitalWrite(7, cmd.solenoid ? 1 : 0);
         }
