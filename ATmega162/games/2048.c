@@ -681,7 +681,7 @@ void game_2048(){
                 }
                 if(SLI_get_right_button()){ // restart
                     frame_buffer_clear();
-                    //clearGameState(gm->storageManager);
+                    writeCurrentUserProfile(gm->userProfile);
                     delete_GameManager(&gm);
                     gm = new_GameManager();
                     actuatorDrawBackground(gm->actuator);
