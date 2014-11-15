@@ -34,47 +34,40 @@ struct JOY_pos_t CAN_to_joystick(can_msg_t msg){
     return p;
 }
 
-
+void BT_app(Servo s);
 
 int main(void){
     extern void init(void);
     init();
-
     uart_init();	
     SPI_init();
     CAN_init();
     LED_init(); // not necessary?
 
 	motor_init();
+
+
 	pinMode(7, OUTPUT);
 	//motor_range test = motor_calibrate();
 	//delay(2000);
 	//printf("max left and right: %d %d\n",test.max_l, test.max_r);
 
-
-	PID mypid(1,1,0, -255, 255, 0.10);
+	PID mypid(50.0,0.0,0.0, 0.5, 1.0);
     Servo s;
     s.attach(6);
+	//BT_app(s);
     can_msg_t   msg;
 	ControlCmd  cmd;
-	int16_t position;
-	int16_t maxSpeed=0;
-	int16_t speed=0;
-	int16_t reference_speed=0;
-	int16_t u = 0;
 	while(1){
 		msg	 = CAN_recv_blocking();
-		position = motor_read();
-		speed =mypid.calculate_speed(position);
-		u = mypid.Compute(speed, reference_speed);
-		printf("u %d\n",u );
-		motor_set_speed(cmd.motorSpeed);
+		
         switch(msg.ID){
         case CANID_ControlCmd:
             memcpy(&cmd, msg.data, msg.length);
             //printf("received can ControlCmd: (%d, %d, %d)\n", cmd.motorSpeed, cmd.servoPos, cmd.solenoid);
-			reference_speed = cmd.motorSpeed;
-            //motor_set_speed(cmd.motorSpeed);
+            motor_set_speed(cmd.motorSpeed);
+			
+			mypid.update_reference(cmd.motorSpeed);
             s.write(cmd.servoPos);
             digitalWrite(7, cmd.solenoid ? 1 : 0);
         }
@@ -183,4 +176,61 @@ void can_test(void){
         
         delay(1000);
     }
+}
+
+void BT_app(Servo s){
+	int ledPin = 13;
+	Serial.begin(9600);
+	pinMode(ledPin, OUTPUT);
+	digitalWrite(ledPin,HIGH);
+	char* c;
+	String readString;
+	char buffer[255];
+	int value;
+	int quit=0;
+	int pow=0;
+
+	while(!quit){
+		delay(10);
+		printf("w\n");
+		if (pow==1){
+			digitalWrite(7,0);
+			pow=0;
+		}
+		while (Serial.available()) {
+			delay(3);  
+			char c = Serial.read();
+			readString += c; 
+		}
+		printf("after reading\n");
+		if (readString.length() >0) {
+			printf("if\n");
+			for (int i=0; i<readString.length()-1; i++){
+				buffer[i]=readString[i+1];
+				
+			}
+			buffer[readString.length()]='\0';
+			
+			printf("buffer: %c%c%c\n",buffer[0], buffer[1], buffer[2]);
+			value=atoi(buffer);
+			printf("type, val: %c %d\n",readString[0],value);
+			switch(readString[0]){
+			case 'M':
+				motor_set_speed(value);
+				break;
+			case 'P':
+				digitalWrite(7,1);
+				pow=1;
+				break;
+			case 'S':
+				s.write(value);
+				break;
+			case 'E':
+				quit=1;
+				break;
+			}
+			readString="";
+			}
+	  }
+	   
 }

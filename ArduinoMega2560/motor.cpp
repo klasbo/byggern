@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <interrupt.h>
 #include <Wire/Wire.h>
 #include "motor.h"
 
