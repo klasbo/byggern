@@ -1,14 +1,24 @@
 #include <Arduino.h>
+#include <Arduino/Interrupts>
 #include <inttypes.h>
 #include "pid.h"
+#include "motor.h"
+
+
+static PID* pid_ptr;
 
 PID::PID(double kp, double ki, double kd, int16_t low_limit, int16_t high_limit, double sampleTime ){
+	NoInterrupts();
 	this->kp = kp;
 	this->ki = ki;
 	this->kd = kd;
 	this->sampleTime = sampleTime;
 	outMax = high_limit;
 	outMin = low_limit;
+	pid_ptr = this;
+	timer_init();
+
+	Interrupts();
 }
 
 
@@ -27,73 +37,75 @@ int16_t PID::calculate_speed(int16_t pos){
 	return speed;
 }
 
-//maxspeed ~32500
-//speed [0....100]
-// => ~320 motor_counter for each speed
-int16_t PID::Compute(int16_t input,int16_t reference){
+void PID::timer_shutdown(void){}
+
+/*
+	maxspeed ~32500
+	speed -100...100
+	output -255...255
+	=> ~161 motor_counter for each speed
+	=< ~255 motor_counter per output
+*/
+int16_t PID::Compute(void){
 	static int16_t output;
 	static int16_t lastInput;
-	unsigned long now = millis();
-	unsigned static long lastTime = millis();
 	static double Integrator_term;
 	
-	if (now - lastTime >= sampleTime*1000){
-		if(now - lastTime >= sampleTime*2000){
-			printf("PID running slow, missing deadlines\n");
-		}
-		int16_t error = reference - input;
-		Integrator_term += ( ki*error );
+	int16_t error = reference - input;
+	Integrator_term += ( ki*error );
 
-		// limit the integration term
-		if(Integrator_term > outMax) Integrator_term= outMax;
-		else if(Integrator_term < outMin) Integrator_term= outMin;
+	// limit the integration term
+	if(Integrator_term > outMax) Integrator_term= outMax;
+	else if(Integrator_term < outMin) Integrator_term= outMin;
 
-		// calculate output:
-		// proportional part + integral part*time + derivative part/time
-		int16_t output = kp * error + Integrator_term - kd*(input - lastInput)/sampleTime;
+	// calculate output:
+	// proportional part + integral part*time + derivative part/time
+	int16_t output = kp * error + Integrator_term - /*kd*(input - lastInput)/sampleTime*/;
 		
 		
-		// limit the output term
-		if(output > outMax) output = outMax;
-		else if(output < outMin) output = outMin;
+	// limit the output term
+	if(output > outMax) output = outMax;
+	else if(output < outMin) output = outMin;
+	//lastInput = input;
 
-		lastInput = input;
-		lastTime = now;
-		return output;
-	}
-	else{
-		return output;
-	}
+	//output should be between -255..255
+	return pid_output;
 }
 
-#include <avr/interrupts>
-#include <inttypes.h>
+//clock 5 is occupied by servo library
+//using clock 4 should be safest
 
-#define PRESCALER 64
-#define time_frequency 1000
 
-static volatile unsigned long time;
 
-//using clock 5
-/*
-void timer_init(void){
-	cli();
-	TCNT5 = 0;
-	OCR5A = (16*10^6) / (time_frequency*PRESCALER)-1; //must be less than 16^2 = 65536
-	TCCR5A |= (1 << WGM52); // turn on CLC mode
-	TCCR5B |= ; //sets the prescaler to some number see datasheet page 157
-	TIMSK5 |= (1 << OCIE5A); //enable clc interrupt
+void PID::timer_init(void){
+	//NoInterrupts();
+	//set everything to zero
+	TCCR4A	= 0; //normal counting mode. we want to use overflow interrupt
+	TCCR4B	= 0;
+	TCNT4	= 0;
+
+	//256 prescaler
+	TCCR4B |= (1<<CS42);
+
+	TIMSK5 |= (1 << TOIE5);
+
+
+	/*
+	TCNT4 = 0;
+	OCR4A = (16*10^6) / (time_frequency*PRESCALER)-1; //must be less than 16^2 = 65536
+	TCCR4A |= (1 << WGM42); // turn on CLC mode
+	TCCR4B |= ; //sets the prescaler to some number see datasheet page 157
+	TIMSK4 |= (1 << OCIE4A); //enable clc interrupt
+	*/
+	//Interrupts();
 }
 
-uint16_t getTime(void){
-	cli();
-	uint16_t mytime = time;
-	sei();
-	return time;
-}
+ISR( TIMER4_OVF_vect ){
+	//convert sampletime from seconds to milliseconds
+	//set the counter down to some value
+	TCNT4 = 65536 -  int((pid_ptr->sampleTime*1000)*62.5);
 
-ISR( TIMER5_COMPA_vekt ){
-	cli();
-	++time;
-	sei();
-}*/
+	pid_ptr->Calculate();
+	motor_set_speed(pit_ptr->pid_output);
+
+}
