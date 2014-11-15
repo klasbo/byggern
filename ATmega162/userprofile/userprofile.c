@@ -10,10 +10,11 @@
 #include "../drivers/analog/slider.h"
 #include "../drivers/display/fonts/font8x8.h"
 #include "../drivers/display/frame_buffer.h"
+#include "../macros.h"
 
 
-static uint8_t              currentUser;
-UserProfile EEMEM    userProfiles[MAX_NUM_USERS];
+static uint8_t      currentUser;
+UserProfile EEMEM   userProfiles[MAX_NUM_USERS];
 
 void createDefaultProfile(void){
     UserProfile p;
@@ -41,7 +42,6 @@ UserProfile getCurrentUserProfile(void){
 }
 
 void writeUserProfile(UserProfile* p, uint8_t user){
-    printf("writing %s as user %d\n", p->username, user);
     if(user > 0  &&  user < MAX_NUM_USERS){
         eeprom_write_block(p, &userProfiles[user], sizeof(UserProfile));
     }
@@ -53,7 +53,7 @@ void writeCurrentUserProfile(UserProfile* p){
 
 void deleteUserProfile(uint8_t user){
     if(user > 0  &&  user < MAX_NUM_USERS  &&  user != currentUser){
-        // memset not available for eeprom?
+        // memset not available for eeprom
         UserProfile p;
         memset(&p, 0, sizeof(UserProfile));
         eeprom_write_block(&p, &userProfiles[user], sizeof(UserProfile));
@@ -61,28 +61,30 @@ void deleteUserProfile(uint8_t user){
 }
 
 
-
-
-
-void userIterator(char* info, void function(uint8_t selected)){
-    void renderUsernames(char* info){
-        frame_buffer_clear();
-        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-        //frame_buffer_set_font_spacing(0, 0);
-        frame_buffer_printf("%s\n", info);
-        for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
-            if(i == getCurrentUser()){
-                frame_buffer_printf("-");
-            }
-            frame_buffer_set_cursor(2*FONT8x8_WIDTH, (i+1) * FONT8x8_HEIGHT);
-            frame_buffer_printf("%s\n", getUserProfile(i).username);
+void renderUsernames(char* info){
+    frame_buffer_clear();
+    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+    frame_buffer_printf("%s\n", info);
+    for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
+        if(i == getCurrentUser()){
+            frame_buffer_printf("-");
         }
-        frame_buffer_printf("[Quit]   [Sel]");
-        frame_buffer_render();
+        frame_buffer_set_cursor(2*FONT8x8_WIDTH, (i+1) * FONT8x8_HEIGHT);
+        frame_buffer_printf("%s\n", getUserProfile(i).username);
     }
+    frame_buffer_printf("[Quit]   [Sel]");
+    frame_buffer_render();
+}
 
-    renderUsernames(info);
-    
+
+void settingsIterator(
+    char*   actionInfo,
+    void    (*renderBackground)(char*),
+    uint8_t numItems,
+    void    (*action)(uint8_t)
+){
+    renderBackground(actionInfo);
+
     JOY_dir_t joyDirnPrev   = NEUTRAL;
     JOY_dir_t joyDirn       = NEUTRAL;
     
@@ -101,20 +103,22 @@ void userIterator(char* info, void function(uint8_t selected)){
             frame_buffer_printf(" ");
             switch(joyDirn){
                 case UP:
-                    selected = selected > 0 ?                selected - 1 : selected;
-                    break;
+                selected = selected > 0 ?           selected - 1 : selected;
+                break;
                 case DOWN:
-                    selected = selected < MAX_NUM_USERS-1 ?  selected + 1 : selected;
-                    break;
+                selected = selected < numItems-1 ?  selected + 1 : selected;
+                break;
                 default: break;
             }
         }
+        // Since opening the item is done with the right button, we need to make 
+        //  sure the user has let go before the button can be considered "pressed"
         if(!SLI_get_right_button()){
             selectable = 1;
         }
         if(SLI_get_right_button() && selectable){
-            function(selected);
-            renderUsernames(info);
+            action(selected);
+            renderBackground(actionInfo);
         }
         if(SLI_get_left_button()){
             return;
@@ -124,14 +128,16 @@ void userIterator(char* info, void function(uint8_t selected)){
 
 
 void user_delete(void){ 
-    userIterator("Delete", deleteUserProfile);
+    settingsIterator("Delete", renderUsernames, MAX_NUM_USERS, deleteUserProfile);
 }
 
 
 void user_new(void){
-    userIterator("New user",
-        ({
-        void fn(uint8_t selected){
+    settingsIterator(
+        "New user",
+        renderUsernames,
+        MAX_NUM_USERS,
+        lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
                 frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
                 frame_buffer_printf("[Back]    [Ok]");
@@ -154,25 +160,25 @@ void user_new(void){
                     if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
                         switch(joyDirn){
                             case DOWN:
-                                if(c == 0){
-                                    c = 'a';
+                            if(c == 0){
+                                c = 'a';
                                 } else if(c < 'z'){
-                                    c++;
-                                }
-                                break;
+                                c++;
+                            }
+                            break;
                             case UP:
-                                if(c == 'a'){
-                                    c = 0;
+                            if(c == 'a'){
+                                c = 0;
                                 } else if(c > 'a'){
-                                    c--;
-                                }
-                                break;
+                                c--;
+                            }
+                            break;
                             case LEFT:
-                                pos = pos > 0 ? pos - 1 : pos;
-                                break;
+                            pos = pos > 0 ? pos - 1 : pos;
+                            break;
                             case RIGHT:
-                                pos = pos < MAX_USERNAME_LENGTH ? pos + 1 : pos;
-                                break;
+                            pos = pos < MAX_USERNAME_LENGTH ? pos + 1 : pos;
+                            break;
                             default: break;
                         }
                     }
@@ -185,18 +191,158 @@ void user_new(void){
                         return;
                     }
                     if(SLI_get_left_button()){
-                        return;            
+                        return;
                     }
                 }
             }
-        }
-        &fn;
-        })
+        })        
     );
 }
 
 
 void user_login(void){
-    userIterator("Login as", setCurrentUser);
+    settingsIterator("Login As", renderUsernames, MAX_NUM_USERS, setCurrentUser);
 }
 
+
+void controls_motor(void){
+    settingsIterator(
+        "Motor",
+        lambda(void, (char* setting){
+            frame_buffer_clear();
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf(
+                "  Joy X\n"
+                "  Joy Y\n"
+                "  Sli R\n"
+                "  Sli L"
+            );
+            
+            uint8_t currentControl = getCurrentUserProfile().game_pong.motorInputType;
+            if(currentControl != 0){
+                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_printf("-");
+            }
+            
+            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_printf("[Quit]   [Sel]");
+        }),
+        4,
+        lambda(void, (uint8_t selected){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.motorInputType =
+                selected == 0 ? CONTROL_JOY_X :
+                selected == 1 ? CONTROL_JOY_Y :
+                selected == 2 ? CONTROL_SLI_R :
+                selected == 3 ? CONTROL_SLI_L :
+                                0 ;
+            writeCurrentUserProfile(&p);
+        })
+    );
+}
+
+void controls_motor_sensitivity(void){
+    settingsIterator(
+        "Sensitivity",
+        lambda(void, (char* setting){
+            frame_buffer_clear();
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf(
+              "  1\n"
+              "  2\n"
+              "  3\n"
+              "  4\n"
+              "  5\n"
+            );
+
+            uint8_t currentValue = getCurrentUserProfile().game_pong.motorSensitivity;
+            if(currentValue != 0){
+                frame_buffer_set_cursor(0, currentValue*FONT8x8_HEIGHT);
+                frame_buffer_printf("-");
+            }
+
+            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_printf("[Quit]   [Sel]");
+        }),
+        5,
+        lambda(void, (uint8_t val){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.motorSensitivity = val + 1;
+            writeCurrentUserProfile(&p);
+        })
+    );
+}
+
+void controls_servo(void){
+    settingsIterator(
+        "Servo",
+        lambda(void, (char* setting){
+            frame_buffer_clear();
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf(
+                "  Joy X\n"
+                "  Joy Y\n"
+                "  Sli R\n"
+                "  Sli L"
+            );
+            
+            uint8_t currentControl = getCurrentUserProfile().game_pong.servoInputType;
+            if(currentControl != 0){
+                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_printf("-");
+            }
+            
+            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_printf("[Quit]   [Sel]");
+        }),
+        4,
+        lambda(void, (uint8_t selected){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.servoInputType =
+                selected == 0 ? CONTROL_JOY_X :
+                selected == 1 ? CONTROL_JOY_Y :
+                selected == 2 ? CONTROL_SLI_R :
+                selected == 3 ? CONTROL_SLI_L :
+                                0 ;
+            writeCurrentUserProfile(&p);
+        })
+    );
+}
+
+void controls_solenoid(void){
+    settingsIterator(
+        "Solenoid",
+        lambda(void, (char* setting){
+            frame_buffer_clear();
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf(
+                "  Joy Btn\n"
+                "  Joy Up\n"
+                "  Sli Btn R"
+            );
+            
+            uint8_t currentControl = getCurrentUserProfile().game_pong.solenoidInputType;
+            if(currentControl != 0){
+                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_printf("-");
+            }
+            
+            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_printf("[Quit]   [Sel]");
+        }),
+        3,
+        lambda(void, (uint8_t selected){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.solenoidInputType =
+                selected == 0 ? CONTROL_JOY_BTN :
+                selected == 1 ? CONTROL_JOY_UP :
+                selected == 2 ? CONTROL_SLI_BTN_R :
+                                0 ;
+            writeCurrentUserProfile(&p);
+        })
+    );
+}

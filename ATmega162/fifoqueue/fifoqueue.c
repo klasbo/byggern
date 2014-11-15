@@ -69,6 +69,20 @@ void dequeue(fifoqueue_t* q, void* recv){
 }
 
 
+void pop_front(fifoqueue_t* q){
+    printf("pop_front type %d of size %d\n", q->front->type, q->front->size);
+
+    if(!q->front){ return; }
+
+    fifonode_t* del = q->front;
+    
+    q->front = q->front->next;
+    
+    free(del->data);
+    free(del);
+}
+
+
 
 uint8_t front_type(fifoqueue_t* q){
     if(q->front == NULL){

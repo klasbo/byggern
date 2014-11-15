@@ -1,9 +1,9 @@
-
 #include "joystick.h"
 #include "adc.h"
 #include "avr/io.h"
 
-#define DIR_THRESHOLD 80
+#define DIR_THRESHOLD       80
+#define NEUTRAL_THRESHOLD   40
 
 static uint8_t center_x;
 static uint8_t center_y;
@@ -12,7 +12,7 @@ void __attribute__ ((constructor)) joystick_init(void){
     extern void adc_init(void);
     adc_init();
     JOY_set_new_center();
-	PORTB &= ~(1 << PINB2);
+    PORTB &= ~(1 << PINB2);
 }
 
 void JOY_set_new_center(void){
@@ -47,17 +47,29 @@ JOY_pos_t JOY_get_position(void){
 
 
 JOY_dir_t JOY_get_direction(void){
+    static JOY_dir_t previous;
+    
     JOY_pos_t pos = JOY_get_position();
-        
-    return
-    pos.x >  DIR_THRESHOLD  ? RIGHT  :
+            
+    /* To prevent "bouncing" we store the previous direction:
+        If the position is in the deadzone between NEUTRAL_THRESHOLD and 
+        DIR_THRESHOLD, the direction is "undecided", so we return the previous direction
+    */
+    JOY_dir_t d =
+    pos.x >  DIR_THRESHOLD  ? RIGHT  :  // Outside the "direction" square
     pos.x < -DIR_THRESHOLD  ? LEFT   :
     pos.y >  DIR_THRESHOLD  ? UP     :
     pos.y < -DIR_THRESHOLD  ? DOWN   :
-                              NEUTRAL;
+    pos.x <  NEUTRAL_THRESHOLD &&       // Within the "neutral" square
+    pos.x > -NEUTRAL_THRESHOLD &&
+    pos.y <  NEUTRAL_THRESHOLD &&
+    pos.y > -NEUTRAL_THRESHOLD 
+                            ? NEUTRAL :
+                            previous;   // In the deadzone
+    previous = d;
+    return d;
 }
 
 int8_t JOY_get_button(void){
-	return !(PINB & (1<<PINB2));
+    return !(PINB & (1<<PINB2));
 }
-

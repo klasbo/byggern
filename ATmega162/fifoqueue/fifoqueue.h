@@ -49,6 +49,12 @@ void enqueue(fifoqueue_t* q, uint8_t type, void* data, uint16_t size);
 */
 void dequeue(fifoqueue_t* q, void* recv);
 
+
+/** Similar to dequeue(), but does not copy the data in the front element
+*/
+void pop_front(fifoqueue_t* q);
+
+
 /** Returns the type id of the front element, as set in enqueue()
     Returns 0 if the queue is empty
 */

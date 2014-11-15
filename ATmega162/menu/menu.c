@@ -11,39 +11,58 @@ extern void game_pong(void);
 extern void user_login(void);
 extern void user_new(void);
 extern void user_delete(void);
+extern void controls_motor(void);
+extern void controls_motor_sensitivity(void);
+extern void controls_servo(void);
+extern void controls_solenoid(void);
 
 static menunode_t* mainMenu = &(menunode_t){
     .item = { .name = "Main Menu",                                  },
     .num_submenus = 3,
     .submenus = {
-		 &(menunode_t){
-			.item = { .name = "Users",                               },
-			.num_submenus = 3,
-			.submenus = {
-				&(menunode_t){
-					.item = { .name = "Login",		.fun = &user_login	},
-				},
-				&(menunode_t){
-					.item = { .name = "New User",	.fun = &user_new	},
-				},
-				&(menunode_t){
-					.item = { .name = "Delete user",.fun = &user_delete },
-				},
-			},	 
-		 },
-		
         &(menunode_t){
-            .item = { .name = "Settings",                               },
+            .item = { .name = "Users",                                  },
+            .num_submenus = 3,
+            .submenus = {
+                &(menunode_t){
+                    .item = { .name = "Login",          .fun = &user_login  },
+                },
+                &(menunode_t){
+                    .item = { .name = "New User",       .fun = &user_new    },
+                },
+                &(menunode_t){
+                    .item = { .name = "Delete user",    .fun = &user_delete },
+                },
+            },
+        },
+        
+        &(menunode_t){
+            .item = { .name = "Controls",                               },
+            .num_submenus = 4,
+            .submenus = {
+                &(menunode_t){
+                    .item = { .name = "Motor",          .fun = &controls_motor      },
+                },
+                &(menunode_t){
+                    .item = { .name = "Mtr Sens",       .fun = &controls_motor_sensitivity},
+                },
+                &(menunode_t){
+                    .item = { .name = "Servo",          .fun = &controls_servo      },
+                },
+                &(menunode_t){
+                    .item = { .name = "Solenoid",       .fun = &controls_solenoid   },
+                },
+            },
         },
         &(menunode_t){
             .item = { .name = "Games",                                  },
             .num_submenus = 2,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "Pong",       .fun = &game_pong       },
+                    .item = { .name = "Pong",           .fun = &game_pong   },
                 },
                 &(menunode_t){
-                    .item = { .name = "2048",       .fun = &game_2048       },
+                    .item = { .name = "2048",           .fun = &game_2048   },
                 },
             },
         },/*

@@ -17,20 +17,11 @@
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
 #include "drivers/communication/uart.h"
-#include "drivers/analog/analog_read.h"
 
 #include "userprofile/userprofile.h"
+#include "macros.h"
 
 
-#define if_assignment_modifies(lval, rval) \
-    typeof(lval) _##lval = lval; \
-    if( (_##lval = lval), ((lval = rval) != _##lval) )
-
-#define lambda(returnType, body) \
-({ \
-    returnType __fn body \
-    &__fn; \
-})
 
 extern void createDefaultProfile(void);
 
@@ -39,7 +30,7 @@ int main(void){
     // TODO: move this somewhere...
     TCCR3B |= 1<<(CS30);
     
-    printf_P(PSTR("\nstarted!\n"));
+    //printf_P(PSTR("\nstarted!\n"));
     
     //frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     //frame_buffer_set_font_spacing(-2, 4);
@@ -68,6 +59,7 @@ int main(void){
         if_assignment_modifies(prev_menu, menu){
             
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_set_font_spacing(-1, 0);
             frame_buffer_clear();
             frame_buffer_printf("%s\n", menu_close(menu)->item.name);
             for(int idx = 0; idx < menu_close(menu)->num_submenus; idx++){
@@ -84,17 +76,17 @@ int main(void){
             }
             frame_buffer_render();
         }
-		
+        
         //TODO: use joystick button
-		
+        
         if(SLI_get_right_button() && menu->item.fun){
             //OLED_reset();
             //OLED_printf("\nopening..\n");
             menu->item.fun();
             prev_menu = NULL;
         }
-		
-		
+        
+        
         //TODO: delay until / periodic
         _delay_ms(20);
     }

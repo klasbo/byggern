@@ -122,9 +122,6 @@
     <Compile Include="drivers\analog\adc.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\analog\analog_read.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="drivers\analog\analog_test.c">
       <SubType>compile</SubType>
     </Compile>
@@ -138,9 +135,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\analog\slider.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="drivers\analog\analog_read.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\communication\can\can.c">
@@ -222,6 +216,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="games\pong.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="macros.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="menu\menu.c">
