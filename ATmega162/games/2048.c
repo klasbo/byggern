@@ -712,3 +712,9 @@ void game_2048(){
     
     return;
 }
+
+
+void __attribute__((constructor)) game_2048_init(void){
+    // Start the timer for seeding random numbers
+    TCCR3B |= 1<<(CS30);
+}    

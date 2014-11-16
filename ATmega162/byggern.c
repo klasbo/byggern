@@ -26,24 +26,15 @@
 extern void createDefaultProfile(void);
 
 int main(void){
-    //createDefaultProfile();
-    // TODO: move this somewhere...
-    TCCR3B |= 1<<(CS30);
+    createDefaultProfile();
     
     //printf_P(PSTR("\nstarted!\n"));
     
-    //frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    //frame_buffer_set_font_spacing(-2, 4);
-    //frame_buffer_printf_P(PSTR("frame buffer\nmultiline\ntest\n  yay?"));
-    //frame_buffer_render();
-    
-    //_delay_ms(5000);
-
     menunode_t* menu        = get_menu();
     menunode_t* prev_menu   = 0;
     
     JOY_dir_t   dirn        = JOY_get_direction();
-
+    
     
     while(1){
         if_assignment_modifies(dirn, JOY_get_direction()){
@@ -71,24 +62,16 @@ int main(void){
                 frame_buffer_printf("%s\n", menu_open_submenu(menu_close(menu), idx)->item.name);
             }
             if(menu->item.fun){
-                frame_buffer_set_cursor(10*FONT8x8_WIDTH, 7*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(10*FONT8x8_WIDTH, 7*FONT8x8_HEIGHT-1);
                 frame_buffer_printf("[Open]");
             }
             frame_buffer_render();
         }
-        
-        //TODO: use joystick button
-        
+
         if(SLI_get_right_button() && menu->item.fun){
-            //OLED_reset();
-            //OLED_printf("\nopening..\n");
             menu->item.fun();
             prev_menu = NULL;
         }
-        
-        
-        //TODO: delay until / periodic
-        _delay_ms(20);
     }
     
 }

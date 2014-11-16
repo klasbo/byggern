@@ -127,14 +127,13 @@ void settingsIterator(
 }
 
 
-void user_delete(void){ 
-    settingsIterator("Delete", renderUsernames, MAX_NUM_USERS, deleteUserProfile);
+void user_login(void){
+    settingsIterator("Login As", renderUsernames, MAX_NUM_USERS, setCurrentUser);
 }
 
-
-void user_new(void){
+void user_add(void){
     settingsIterator(
-        "New user",
+        "Add user",
         renderUsernames,
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
@@ -152,7 +151,7 @@ void user_new(void){
                 while(1){
                     newUser.username[pos] = c;
                     frame_buffer_set_cursor(2*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
-                    frame_buffer_printf("%s", newUser.username);
+                    frame_buffer_printf("%-8s", newUser.username);
                     frame_buffer_render();
 
                     joyDirnPrev = joyDirn;
@@ -160,25 +159,28 @@ void user_new(void){
                     if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
                         switch(joyDirn){
                             case DOWN:
-                            if(c == 0){
-                                c = 'a';
-                                } else if(c < 'z'){
-                                c++;
-                            }
-                            break;
+                                if(c < 'z'){
+                                    c++;
+                                }
+                                break;
                             case UP:
-                            if(c == 'a'){
-                                c = 0;
-                                } else if(c > 'a'){
-                                c--;
-                            }
-                            break;
+                                if(c > 'a'){
+                                    c--;
+                                }
+                                break;
                             case LEFT:
-                            pos = pos > 0 ? pos - 1 : pos;
-                            break;
+                                if(pos > 0){
+                                    newUser.username[pos] = 0;
+                                    pos--;
+                                }
+                                c = newUser.username[pos];
+                                break;
                             case RIGHT:
-                            pos = pos < MAX_USERNAME_LENGTH ? pos + 1 : pos;
-                            break;
+                                if(pos < MAX_USERNAME_LENGTH  &&  newUser.username[pos]){
+                                    pos++;
+                                    c = 'a';
+                                }                                                           
+                                break;
                             default: break;
                         }
                     }
@@ -186,6 +188,10 @@ void user_new(void){
                         quitable = 1;
                     }
                     if(SLI_get_right_button() && quitable){
+                        newUser.game_pong.motorInputType    = CONTROL_JOY_X;
+                        newUser.game_pong.motorSensitivity  = 3;
+                        newUser.game_pong.servoInputType    = CONTROL_SLI_R;
+                        newUser.game_pong.solenoidInputType = CONTROL_JOY_UP;
                         writeUserProfile(&newUser, selected);
                         setCurrentUser(selected);
                         return;
@@ -200,9 +206,52 @@ void user_new(void){
 }
 
 
-void user_login(void){
-    settingsIterator("Login As", renderUsernames, MAX_NUM_USERS, setCurrentUser);
+
+
+void user_delete(void){ 
+    settingsIterator("Delete", renderUsernames, MAX_NUM_USERS, deleteUserProfile);
 }
+
+void user_highscores_pong(void){
+    frame_buffer_clear();
+    frame_buffer_printf("Highscores");
+    for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
+        UserProfile p = getUserProfile(i);
+        if(p.username[0]){
+            frame_buffer_set_cursor(0, (i+1)*FONT8x8_HEIGHT);
+            frame_buffer_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
+        }
+    }
+    frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+    frame_buffer_printf("[Quit]");
+    frame_buffer_render();
+    while(1){
+        if(SLI_get_left_button()){
+            return;
+        }
+    }
+}
+
+void user_highscores_2048(void){
+    frame_buffer_clear();
+    frame_buffer_printf("Highscores");
+    for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
+        UserProfile p = getUserProfile(i);
+        if(p.username[0]){
+            frame_buffer_set_cursor(0, (i+1)*FONT8x8_HEIGHT);
+            frame_buffer_printf("%-8s: %5d\n", p.username, p.game_2048.bestScore);
+        }
+    }
+    frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+    frame_buffer_printf("[Quit]");
+    frame_buffer_render();
+    while(1){
+        if(SLI_get_left_button()){
+            return;
+        }
+    }
+}
+
 
 
 void controls_motor(void){

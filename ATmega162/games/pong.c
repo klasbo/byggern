@@ -3,24 +3,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util/delay.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
 
 #include "../drivers/analog/slider.h"
 #include "../drivers/analog/joystick.h"
 #include "../drivers/communication/can/can.h"
+#include "../drivers/display/frame_buffer.h"
+#include "../drivers/display/fonts/font8x8.h"
 #include "../../ArduinoMega2560/can_types.h"
 #include "../fifoqueue/fifoqueue.h"
 #include "../userprofile/userprofile.h"
 
 
 
-#define pollRate_hz 4
-
-#define eventType_pollInput 99
-#define eventType_canMsg    98
 
 typedef struct InputController InputController;
 struct InputController {
@@ -30,10 +26,6 @@ struct InputController {
     uint8_t (*solenoidInputFcn)(void);
 };
 
-typedef struct pollInputEvent pollInputEvent;
-struct pollInputEvent {
-    uint8_t unused;
-};
 
 
 
@@ -57,12 +49,12 @@ can_msg_t genControlCmd(InputController* ic){
 
 int16_t motorSensitivityMultiplier(uint8_t sensitivity){
     return
-        sensitivity == 1    ?   10      :
-        sensitivity == 2    ?   25      :
-        sensitivity == 3    ?   40      :
+        sensitivity == 1    ?   15      :
+        sensitivity == 2    ?   30      :
+        sensitivity == 3    ?   50      :
         sensitivity == 4    ?   70      :
         sensitivity == 5    ?   100     :
-                                40      ;
+                                50      ;
 }
 
 
@@ -97,20 +89,25 @@ uint8_t SLI_L_to_servo(void){
 }
 
 uint8_t JOY_BTN_to_solenoid(void){
-    return !JOY_get_button();
+    return JOY_get_button();
 }
 uint8_t JOY_UP_to_solenoid(void){
-    return JOY_get_position().y < 50;
+    return JOY_get_position().y > 50;
 }
 uint8_t SLI_BTN_R_to_solenoid(void){
-    return !SLI_get_right_button();
+    return SLI_get_right_button();
 }
 
-static fifoqueue_t* q;
+static uint16_t     lifeTime;
+
+
+void disableTimerInterrupt(__attribute__((unused)) uint8_t* v){
+    TIMSK  &= ~(1 << OCIE1A);   // Disable interrupt on OCR1A match
+}    
+
 
 void game_pong(void){
     
-    q = new_fifoqueue();
 
     InputController ic;
     UserProfile p = getCurrentUserProfile();
@@ -145,27 +142,84 @@ void game_pong(void){
     TCCR1B  |=  (1 << WGM12);   // Clear TCNT1 on compare match
     TCCR1B  |=  (1 << CS32);    // Enable timer, 256x prescaler
     TIMSK   |=  (1 << OCIE1A);  // Enable interrupt on OCR1A match
-    
-    OCR1A = (F_CPU/256)/pollRate_hz;
-    sei();
+    OCR1A   =   (F_CPU/256);
+    sei();    
+    // scope(exit) hacking
+    __attribute__((cleanup(disableTimerInterrupt))) uint8_t disableTimerInterruptVar;
 
     
-    printf("OCR1A: %d\n", OCR1A);
-    printf("TCNT1: %d\n", TCNT1);
-
     can_msg_t       recvMsg;
-    pollInputEvent  pollInputEvent;
-    uint8_t         quit = 0;
+    uint8_t         quit                = 0;
+    lifeTime                            = 0;
+    uint16_t        prevLifeTime        = -1;
 
+
+    void renderBackground(void){
+        frame_buffer_clear();
+        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+        frame_buffer_printf(
+            "PONG\n"
+            " You vs Gravity"
+        );
+        frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+        frame_buffer_printf("[Quit]");
+        frame_buffer_render();
+    }
+            
+            
+    renderBackground();
     
-    while(!quit){
+    
+    while(!quit){        
         if(SLI_get_left_button()){
             printf("quitting..\n");
             quit = 1;
         }
-        // send ControlCmd
+        
         CAN_send(genControlCmd(&ic));
-        _delay_ms(20);
+        
+        if(prevLifeTime != lifeTime){
+            prevLifeTime = lifeTime;
+            frame_buffer_set_cursor(0, 28);
+            frame_buffer_printf("%5d Seconds", lifeTime);
+            frame_buffer_render();
+        }        
+        
+        
+        recvMsg = CAN_recv();
+        switch(recvMsg.ID){
+            case CANID_GameOver:
+                frame_buffer_set_cursor(20, 20);
+                frame_buffer_printf(
+                    "Game over!\n"
+                );
+                frame_buffer_set_cursor(0, 6*FONT8x8_HEIGHT);
+                frame_buffer_printf(
+                    "Play again?\n"
+                    "[No]       [Yes]"
+                );
+                frame_buffer_render();
+                
+                if(lifeTime > p.game_pong.bestScore){
+                    p.game_pong.bestScore = lifeTime;
+                    writeCurrentUserProfile(&p);
+                }                    
+                
+                while(1){
+                    if(SLI_get_left_button()){
+                        quit = 1;
+                        break;
+                    }
+                    if(SLI_get_right_button()){
+                        renderBackground();
+                        lifeTime = 0;
+                        break;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
     }
     
 
@@ -216,8 +270,6 @@ void game_pong(void){
     */
     
     
-    TIMSK  &= ~(1 << OCIE1A);   // Disable interrupt on OCR1A match
-    delete_fifoqueue(&q);
     
     // printf("TCNT1: %d\n", TCNT1);
 
@@ -225,7 +277,6 @@ void game_pong(void){
 }
 
 ISR(TIMER1_COMPA_vect){
-    //printf("a\n");
-    enqueue(q, eventType_pollInput, 0, 0); //&(pollInputEvent){0}, sizeof(pollInputEvent));
+    lifeTime++;
 }
 

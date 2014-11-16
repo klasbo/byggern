@@ -51,8 +51,15 @@ uint16_t motor_read(void){
 	lsb = ((lsb & 0x33) << 2) | ((lsb & 0xcc) >> 2);
 	lsb = ((lsb & 0x0f) << 4) | ((lsb & 0xf0) >> 4);
 	
+    
+    
 	PORTF &= ~(1 << PF4);
 	int16_t x = (hsb << 8) + lsb;
+    
+    PORTF &= ~(1 << PF3);
+    delayMicroseconds(20);
+    PORTF |= (1 << PF3);
+    
 	//PORTF |= (1<<PINF2); //disable read encoder 
     return x;
     

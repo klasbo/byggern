@@ -9,8 +9,10 @@ extern void can_test(void);
 extern void game_2048(void);
 extern void game_pong(void);
 extern void user_login(void);
-extern void user_new(void);
+extern void user_add(void);
 extern void user_delete(void);
+extern void user_highscores_pong(void);
+extern void user_highscores_2048(void);
 extern void controls_motor(void);
 extern void controls_motor_sensitivity(void);
 extern void controls_servo(void);
@@ -21,23 +23,35 @@ static menunode_t* mainMenu = &(menunode_t){
     .num_submenus = 3,
     .submenus = {
         &(menunode_t){
-            .item = { .name = "Users",                                  },
-            .num_submenus = 3,
+            .item = { .name = "Users",                                      },
+            .num_submenus = 4,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "Login",          .fun = &user_login  },
+                    .item = { .name = "Login",          .fun = &user_login          },
                 },
                 &(menunode_t){
-                    .item = { .name = "New User",       .fun = &user_new    },
+                    .item = { .name = "Add User",       .fun = &user_add            },
                 },
                 &(menunode_t){
-                    .item = { .name = "Delete user",    .fun = &user_delete },
+                    .item = { .name = "Delete user",    .fun = &user_delete         },
+                },
+                &(menunode_t){
+                    .item = { .name = "Highscores",                                 },
+                    .num_submenus = 2,
+                    .submenus = {
+                        &(menunode_t){
+                            .item = { .name = "Pong",           .fun = &user_highscores_pong},
+                        },
+                        &(menunode_t){
+                            .item = { .name = "2048",           .fun = &user_highscores_2048},
+                        },
+                    },
                 },
             },
         },
         
         &(menunode_t){
-            .item = { .name = "Controls",                               },
+            .item = { .name = "Controls",                                   },
             .num_submenus = 4,
             .submenus = {
                 &(menunode_t){
@@ -55,14 +69,14 @@ static menunode_t* mainMenu = &(menunode_t){
             },
         },
         &(menunode_t){
-            .item = { .name = "Games",                                  },
+            .item = { .name = "Games",                                      },
             .num_submenus = 2,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "Pong",           .fun = &game_pong   },
+                    .item = { .name = "Pong",           .fun = &game_pong           },
                 },
                 &(menunode_t){
-                    .item = { .name = "2048",           .fun = &game_2048   },
+                    .item = { .name = "2048",           /*.fun = &game_2048*/           },
                 },
             },
         },/*

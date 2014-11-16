@@ -8,3 +8,4 @@ struct ControlCmd {
 
 #define CANID_ControlCmd 50
 #define CANID_IRLED 3
+#define CANID_GameOver 4

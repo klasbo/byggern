@@ -25,10 +25,11 @@ struct UserProfile {
         uint8_t     grid[4][4];
     } game_2048;
     struct {
-        uint8_t motorInputType;
-        uint8_t motorSensitivity;
-        uint8_t servoInputType;
-        uint8_t solenoidInputType;
+        uint8_t     motorInputType;
+        uint8_t     motorSensitivity;
+        uint8_t     servoInputType;
+        uint8_t     solenoidInputType;
+        uint16_t    bestScore;
     } game_pong;
 };
 
@@ -44,7 +45,7 @@ void deleteUserProfile(uint8_t user);
 
 // Menu functions
 void user_delete(void);
-void user_new(void);
+void user_add(void);
 void user_login(void);
 void controls_motor(void);
 void controls_motor_sensitivity(void);
