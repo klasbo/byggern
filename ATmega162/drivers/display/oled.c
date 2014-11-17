@@ -138,6 +138,10 @@ void OLED_write_char(char c){
     }
 }
 
-
+void OLED_set_font(void* addr, uint8_t width, uint8_t start_offset){
+    font                = (unsigned char*)addr;
+    font_width          = width;
+    font_start_offset   = start_offset;
+}
 
 

@@ -3,6 +3,9 @@
 
 #define MAX_submenus 5
 
+// Allow menu_close() to return the root node of the menu tree (get_menu())?
+#define ALLOW_RETURN_ROOT 0
+
 typedef struct menuitem_t menuitem_t;
 typedef struct menunode_t menunode_t;
 
@@ -23,7 +26,15 @@ struct menunode_t {
 */
 menunode_t* get_menu(void);
 
+/** Get the depth (number of parents) of this node
+*/
 int menu_depth(menunode_t* const menu);
+
+/** Get the index in the submenu list of the parents node
+*/
+int menu_index(menunode_t* const menu);
+
+
 
 /// ----- OPEN/CLOSE/NEXT/PREV ----- ///
 

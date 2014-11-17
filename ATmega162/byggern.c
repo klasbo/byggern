@@ -26,6 +26,7 @@
 extern void createDefaultProfile(void);
 
 int main(void){
+    // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     
     //printf_P(PSTR("\nstarted!\n"));
@@ -48,23 +49,29 @@ int main(void){
         }
         
         if_assignment_modifies(prev_menu, menu){
-            
+            // Set the font each time, because a program may have modified it.
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
             frame_buffer_set_font_spacing(-1, 0);
             frame_buffer_clear();
+
+            // Parent name
             frame_buffer_printf("%s\n", menu_close(menu)->item.name);
-            for(int idx = 0; idx < menu_close(menu)->num_submenus; idx++){
-                if(menu_open_submenu(menu_close(menu), idx) == menu){
-                    frame_buffer_printf("> ");
-                    } else {
-                    frame_buffer_printf("  ");
-                }
-                frame_buffer_printf("%s\n", menu_open_submenu(menu_close(menu), idx)->item.name);
-            }
+
+            // Submenu names
+            foreach_submenu(menu_close(menu), lambda(void, (menunode_t* m, __attribute__((unused)) int idx){
+                frame_buffer_printf("  %s\n", m->item.name);
+            }));
+            
+            // Indicate which item is selected
+            frame_buffer_set_cursor(0, (menu_index(menu)+1)*FONT8x8_HEIGHT);
+            frame_buffer_printf(">");
+            
+            // Indicate runnable program
             if(menu->item.fun){
                 frame_buffer_set_cursor(10*FONT8x8_WIDTH, 7*FONT8x8_HEIGHT-1);
                 frame_buffer_printf("[Open]");
             }
+
             frame_buffer_render();
         }
 
@@ -73,6 +80,8 @@ int main(void){
             prev_menu = NULL;
         }
     }
+
+    return 0;
     
 }
 

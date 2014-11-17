@@ -110,7 +110,11 @@ void __attribute__ ((constructor)) menu_init(void){
 }
 
 menunode_t* get_menu(void){
+#if ALLOW_RETURN_ROOT
     return mainMenu;
+#else
+    return menu_open(mainMenu);
+#endif
 }
 
 int menu_depth(menunode_t* const menu){
@@ -122,6 +126,16 @@ int menu_depth(menunode_t* const menu){
         depth++;
     }
     return depth;
+}
+
+int menu_index(menunode_t* const menu){
+    menunode_t* m       = menu;
+    int         idx     = 0;
+    while(m != menu_open(menu_close(menu))){
+        m = menu_prev(m);
+        idx++;
+    }
+    return idx;
 }
 
 /// ----- OPEN/CLOSE/NEXT/PREV ----- ///
@@ -139,7 +153,11 @@ menunode_t* menu_open(menunode_t* const menu){
 }
 
 menunode_t* menu_close(menunode_t* const menu){
-    if(menu->parent /* && menu->parent != mainMenu */){
+#if ALLOW_RETURN_ROOT
+    if(menu->parent){
+#else
+    if(menu->parent && menu->parent != mainMenu){
+#endif
         return menu->parent;
     } else {
         return menu;
