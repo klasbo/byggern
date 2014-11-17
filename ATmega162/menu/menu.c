@@ -76,22 +76,22 @@ static menunode_t* mainMenu = &(menunode_t){
                     .item = { .name = "Pong",           .fun = &game_pong           },
                 },
                 &(menunode_t){
-                    .item = { .name = "2048",           /*.fun = &game_2048*/           },
+                    .item = { .name = "2048",           .fun = &game_2048           },
                 },
             },
         },/*
         &(menunode_t){
-            .item = { .name = "Tests",                                  },
+            .item = { .name = "Tests",                                      },
             .num_submenus = 3,
             .submenus = {
                 &(menunode_t){
-                    .item = { .name = "SRAM",       .fun = &sram_test       },
+                    .item = { .name = "SRAM",           .fun = &sram_test           },
                 },
                 &(menunode_t){
-                    .item = { .name = "Analog",     .fun = &analog_test     },
+                    .item = { .name = "Analog",         .fun = &analog_test         },
                 },
                 &(menunode_t){
-                    .item = { .name = "CAN",        .fun = &can_test        },
+                    .item = { .name = "CAN",            .fun = &can_test            },
                 },
             },
         },*/

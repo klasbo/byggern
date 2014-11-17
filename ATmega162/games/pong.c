@@ -27,9 +27,6 @@ struct InputController {
 };
 
 
-
-
-
 can_msg_t genControlCmd(InputController* ic){
     ControlCmd cmd = (ControlCmd){
         .servoPos   = ic->servoInputFcn(),
@@ -98,6 +95,9 @@ uint8_t SLI_BTN_R_to_solenoid(void){
     return SLI_get_right_button();
 }
 
+
+
+
 static uint16_t     lifeTime;
 
 
@@ -107,7 +107,6 @@ void disableTimerInterrupt(__attribute__((unused)) uint8_t* v){
 
 
 void game_pong(void){
-    
 
     InputController ic;
     UserProfile p = getCurrentUserProfile();
@@ -137,8 +136,6 @@ void game_pong(void){
     
 
     cli();
-    // attach timer interrupt
-    //TCCR1A |= (1 << COM1A1);   // Clear OC1A on compare match
     TCCR1B  |=  (1 << WGM12);   // Clear TCNT1 on compare match
     TCCR1B  |=  (1 << CS32);    // Enable timer, 256x prescaler
     TIMSK   |=  (1 << OCIE1A);  // Enable interrupt on OCR1A match
@@ -222,57 +219,6 @@ void game_pong(void){
         }
     }
     
-
-    /*
-    while(!quit){
-        //print_fifoqueue_t(q);
-
-        cli();
-        uint8_t f = front_type(q);
-        sei();
-
-        switch(f){
-        case eventType_pollInput:
-
-            cli();
-            dequeue(q, &pollInputEvent);
-            sei();
-
-            //printf("polling..\n");
-            // check for quit input
-            if(SLI_get_left_button()){
-                printf("quitting..\n");
-                quit = 1;
-            }
-            // send ControlCmd
-            CAN_send(genControlCmd());
-            break;
-
-        case eventType_canMsg:
-
-            cli();
-            dequeue(q, &recvMsg);
-            sei();
-
-            printf("new can msg\n");
-            switch(recvMsg.ID){
-            case CANID_IRLED:
-                break;
-                
-            }
-            break;
-        case 0: break;
-        default:
-            printf("received WAT: %d\n", f);
-            break;
-        }
-    }
-    */
-    
-    
-    
-    // printf("TCNT1: %d\n", TCNT1);
-
     return;
 }
 
