@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avr/pgmspace.h>
+#include <util/atomic.h>
 
 typedef struct fifonode_t fifonode_t;
 struct fifonode_t {
@@ -30,66 +31,74 @@ fifoqueue_t* new_fifoqueue(void){
 
 
 void enqueue(fifoqueue_t* q, uint8_t type, void* data, uint16_t size){
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+        fifonode_t* newnode = malloc(sizeof(fifonode_t));
+        //printf_P(PSTR("adding node at %p : (%d, %p, %u)\n"), newnode, type, data, size);
+        newnode->type = type;
+        newnode->data = malloc(size);
+        newnode->size = size;
+        newnode->next = NULL;
     
-    fifonode_t* newnode = malloc(sizeof(fifonode_t));
-    //printf_P(PSTR("adding node at %p : (%d, %p, %u)\n"), newnode, type, data, size);
-    newnode->type = type;
-    newnode->data = malloc(size);
-    newnode->size = size;
-    newnode->next = NULL;
-    
-    memcpy(newnode->data, data, size);
+        memcpy(newnode->data, data, size);
 
-    if(q->front == NULL){
-        q->front = newnode;
-    } else {
-        fifonode_t* n = q->front;
-        while(n->next != NULL){
-            n = n->next;
+        if(q->front == NULL){
+            q->front = newnode;
+        } else {
+            fifonode_t* n = q->front;
+            while(n->next != NULL){
+                n = n->next;
+            }
+            n->next = newnode;
         }
-        n->next = newnode;
     }
 }
 
 
 
 void dequeue(fifoqueue_t* q, void* recv){
-    printf("dequeue type %d of size %d\n", q->front->type, q->front->size);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+        //printf("dequeue type %d of size %d\n", q->front->type, q->front->size);
 
-    if(!q->front){ return; }
+        if(!q->front){ return; }
 
-    memcpy(recv, q->front->data, q->front->size);
+        memcpy(recv, q->front->data, q->front->size);
 
-    fifonode_t* del = q->front;
-    
-    q->front = q->front->next;
-    
-    free(del->data);
-    free(del);
+        fifonode_t* del = q->front;
+        
+        q->front = q->front->next;
+        
+        free(del->data);
+        free(del);
+    }
 }
 
 
 void pop_front(fifoqueue_t* q){
-    printf("pop_front type %d of size %d\n", q->front->type, q->front->size);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+        //printf("pop_front type %d of size %d\n", q->front->type, q->front->size);
 
-    if(!q->front){ return; }
+        if(!q->front){ return; }
 
-    fifonode_t* del = q->front;
-    
-    q->front = q->front->next;
-    
-    free(del->data);
-    free(del);
+        fifonode_t* del = q->front;
+        
+        q->front = q->front->next;
+        
+        free(del->data);
+        free(del);
+    }
 }
 
 
 
 uint8_t front_type(fifoqueue_t* q){
-    if(q->front == NULL){
-        return 0;
-    } else {
-        return q->front->type;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+        if(q->front == NULL){
+            return 0;
+        } else {
+            return q->front->type;
+        }
     }
+    return 0;
 }
 
 

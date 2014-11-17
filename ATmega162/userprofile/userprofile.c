@@ -89,7 +89,7 @@ void settingsIterator(
     JOY_dir_t joyDirn       = NEUTRAL;
     
     uint8_t selected = 0;
-    uint8_t selectable = 0;
+    uint8_t SLIRightButtonReleased = 0;
     
     while(1){
         frame_buffer_set_cursor(1*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
@@ -114,9 +114,9 @@ void settingsIterator(
         // Since opening the item is done with the right button, we need to make 
         //  sure the user has let go before the button can be considered "pressed"
         if(!SLI_get_right_button()){
-            selectable = 1;
+            SLIRightButtonReleased = 1;
         }
-        if(SLI_get_right_button() && selectable){
+        if(SLI_get_right_button() && SLIRightButtonReleased){
             action(selected);
             renderBackground(actionInfo);
         }
@@ -143,11 +143,11 @@ void user_add(void){
                 frame_buffer_render();
                 UserProfile newUser = getUserProfile(selected);
                 // edit newUser.username
-                uint8_t     quitable        = 0;
-                char        c               = 'a';
-                uint8_t     pos             = 0;
-                JOY_dir_t   joyDirnPrev     = NEUTRAL;
-                JOY_dir_t   joyDirn         = NEUTRAL;
+                uint8_t     SLIRightButtonReleased  = 0;
+                char        c                       = 'a';
+                uint8_t     pos                     = 0;
+                JOY_dir_t   joyDirnPrev             = NEUTRAL;
+                JOY_dir_t   joyDirn                 = NEUTRAL;
                 while(1){
                     newUser.username[pos] = c;
                     frame_buffer_set_cursor(2*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
@@ -185,9 +185,9 @@ void user_add(void){
                         }
                     }
                     if(!SLI_get_right_button()){
-                        quitable = 1;
+                        SLIRightButtonReleased = 1;
                     }
-                    if(SLI_get_right_button() && quitable){
+                    if(SLI_get_right_button() && SLIRightButtonReleased){
                         newUser.game_pong.motorInputType    = CONTROL_JOY_X;
                         newUser.game_pong.motorSensitivity  = 3;
                         newUser.game_pong.servoInputType    = CONTROL_SLI_R;

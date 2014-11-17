@@ -105,6 +105,6 @@ void OLED_write_cmd(char c);
 
 void OLED_write_char(char c);
 
-
+void OLED_set_font(void* addr, uint8_t width, uint8_t start_offset);
 
 

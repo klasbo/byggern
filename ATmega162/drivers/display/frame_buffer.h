@@ -4,6 +4,10 @@
 
 #include <stdint.h>
 
+/** Sets the memory location of the frame buffer
+*   addr is assumed to point to 512 bytes of contiguous memory
+*/
+void frame_buffer_set_addr(volatile void* addr);
 
 /** Draw the contents of the frame buffer to the OLED
 */

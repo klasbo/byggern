@@ -9,7 +9,9 @@
 #include "frame_buffer.h"
 #include "../memory_layout.h"
 
-#define frame ( (uint8_t(*)[COLUMNS]) (ext_ram) )
+static volatile void*   fb_addr;
+
+#define frame ( (uint8_t(*)[COLUMNS]) (fb_addr) )
 
 static int              col;
 static int              line;
@@ -22,18 +24,25 @@ static unsigned char*   font;
 static uint8_t          font_horiz_spacing;
 static uint8_t          font_vert_spacing;
 
+void __attribute__((constructor)) frame_buffer_init(void){
+    frame_buffer_set_addr(ext_ram);
+}
+
+void frame_buffer_set_addr(volatile void* addr){
+    fb_addr = addr;
+}
+
 void frame_buffer_render(void){
     for(int i = 0; i < PAGES; i++){
         OLED_go_to_line(i);
-        int j;
-        for(j = 0; j < COLUMNS; j++){
+        for(int j = 0; j < COLUMNS; j++){
             *ext_oled_data = (char)frame[i][j];
         }
     }
 }
 
 void frame_buffer_clear(void){
-    memset((void*)0x1800, 0, 0x400);
+    memset((void*)fb_addr, 0, 0x400);
     col = 0;
     line = 0;
 }

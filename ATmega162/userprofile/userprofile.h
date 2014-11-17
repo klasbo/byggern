@@ -7,14 +7,14 @@
 #define MAX_NUM_USERS       6
 #define MAX_USERNAME_LENGTH 8
 
-#define CONTROL_JOY_X 1
-#define CONTROL_JOY_Y 2
-#define CONTROL_SLI_R 3
-#define CONTROL_SLI_L 4
+#define CONTROL_JOY_X       1
+#define CONTROL_JOY_Y       2
+#define CONTROL_SLI_R       3
+#define CONTROL_SLI_L       4
 
-#define CONTROL_JOY_BTN    1
-#define CONTROL_JOY_UP     2
-#define CONTROL_SLI_BTN_R  3
+#define CONTROL_JOY_BTN     1
+#define CONTROL_JOY_UP      2
+#define CONTROL_SLI_BTN_R   3
 
 
 typedef struct UserProfile UserProfile;
