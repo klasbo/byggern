@@ -43,7 +43,7 @@ void BT_stop(void){
     interrupts();
 }
 
-int16_t coerce(int16_t val, int16_t min, int16_t max){
+int16_t coerce(double val, double min, double max){
     if(val > max){
         return max;
     } else if(val < min){
@@ -61,10 +61,12 @@ void BT_run(Servo* s){
     char key= ' ';
     int	speed_r = 100;
     int speed_l = -100;
-    static int16_t servo_angle = 90;
-    const int16_t servo_angle_max = 160;
-    const int16_t servo_angle_min = 20;
+    static double servo_angle = 90;
+	const double servoangle_per_time = 50;
+    const double servo_angle_max = 160;
+    const double servo_angle_min = 20;
     int servo_adjusted = 0;
+	static int servo_moving;
     if(Serial.available() ){
         key = Serial.read();
         printf("%c\n", key);
@@ -88,14 +90,18 @@ void BT_run(Servo* s){
             noInterrupts();
             break;
         case 'r':
-            servo_angle -= 20;
-            servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
-            s->write(servo_angle);
+			printf("r\n");
+			servo_moving = 1;
+            //servo_angle -= 20;
+            //servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
+            //s->write(servo_angle);
             break;
         case 'l':
-            servo_angle += 20;
-            servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
-            s->write(servo_angle);
+			printf("l\n");
+			servo_moving = -1;	
+			//servo_angle += 20;
+			//servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
+			//s->write(servo_angle);
             break;
         case 'p':
             printf("p\n");
@@ -111,7 +117,23 @@ void BT_run(Servo* s){
             digitalWrite(ledPin, LOW);
             digitalWrite(7,0);
             break;
-    }        
+		case 'z':
+			printf("z   angle %d\n", int(servo_angle));
+			servo_moving = 0;
+			break;
+	}
+	if(servo_moving == 1){
+		servo_angle -= servoangle_per_time*sampleTime;
+		servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
+		s->write(int(servo_angle));
+		
+	}
+	else if(servo_moving == -1){
+		servo_angle += servoangle_per_time*sampleTime;
+		servo_angle = coerce(servo_angle, servo_angle_min, servo_angle_max);
+		s->write(int(servo_angle));
+	}
+	   
 }
 
 ISR(TIMER3_OVF_vect){
