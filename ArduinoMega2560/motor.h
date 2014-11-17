@@ -2,8 +2,8 @@
 #include <stdint.h>
 
 typedef struct{
-	int16_t max_r;
-	int16_t max_l;
+    int16_t max_r;
+    int16_t max_l;
 }motor_range;
 
 

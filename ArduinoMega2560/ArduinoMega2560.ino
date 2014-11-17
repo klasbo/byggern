@@ -1,15 +1,13 @@
-#include "can.h"
-#include "spi.h"
-#include "mcp2515.h"
-#include "ir.h"
-#include "uart.h"
-#include "motor.h"
-#include "analog_info.h"
 
 #include <stdio.h>
 #include <Arduino.h>
 #include <Servo/Servo.h>
 #include <Wire/Wire.h>
+
+#include "can.h"
+#include "ir.h"
+#include "uart.h"
+#include "motor.h"
 #include "pid.h"
 #include "bluetooth.h"
 

@@ -26,15 +26,16 @@
     <UncachedRange />
     <BootSegment>0</BootSegment>
     <AsfFrameworkConfig>
-      <framework-data xmlns="">
-        <options />
-        <configurations />
-        <files />
-        <documentation help="" />
-        <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.7.2" />
-        </dependencies>
-      </framework-data>
+      <framework-data>
+  <options />
+  <configurations />
+  <files />
+  <documentation help="" />
+  <offline-documentation help="" />
+  <dependencies>
+    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.6.0" />
+  </dependencies>
+</framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
     <com_atmel_avrdbg_tool_atmelice>
@@ -365,10 +366,10 @@ build.arch=AVR
     <Folder Include="Visual Micro\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="analog_info.cpp">
+    <Compile Include="bluetooth.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="analog_info.h">
+    <Compile Include="bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="can.cpp">
@@ -377,10 +378,13 @@ build.arch=AVR
     <Compile Include="can.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="led.cpp">
+    <Compile Include="can_types.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="led.h">
+    <Compile Include="ir.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ir.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcp2515.cpp">
@@ -393,6 +397,12 @@ build.arch=AVR
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="motor.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pid.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pid.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="spi.cpp">
