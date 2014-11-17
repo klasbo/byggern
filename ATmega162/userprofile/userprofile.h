@@ -29,6 +29,7 @@ struct UserProfile {
         uint8_t     motorSensitivity;
         uint8_t     servoInputType;
         uint8_t     solenoidInputType;
+        uint8_t     useBluetooth;
         uint16_t    bestScore;
     } game_pong;
 };
