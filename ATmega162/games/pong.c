@@ -24,22 +24,25 @@ struct InputController {
     uint8_t motorSensitivity;
     uint8_t (*servoInputFcn)(void);
     uint8_t (*solenoidInputFcn)(void);
+    uint8_t useBluetooth;
 };
 
 
-can_msg_t genControlCmd(InputController* ic){
-    ControlCmd cmd = (ControlCmd){
-        .servoPos   = ic->servoInputFcn(),
-        .motorSpeed = ic->motorInputFcn(ic->motorSensitivity),
-        .solenoid   = ic->solenoidInputFcn(),
-    };
+void sendNewInput(InputController* ic){
+    if(!ic->useBluetooth){
+        ControlCmd cmd = (ControlCmd){
+            .servoPos   = ic->servoInputFcn(),
+            .motorSpeed = ic->motorInputFcn(ic->motorSensitivity),
+            .solenoid   = ic->solenoidInputFcn(),
+        };
 
-    can_msg_t m;
-    m.ID        = CANID_ControlCmd;
-    m.length    = 3;
-    memcpy(m.data, &cmd, m.length);
+        can_msg_t m;
+        m.ID        = CANID_ControlCmd;
+        m.length    = 3;
+        memcpy(m.data, &cmd, m.length);
 
-    return m;
+        CAN_send(m);
+    }
 }
 
 
@@ -108,30 +111,34 @@ void disableTimerInterrupt(__attribute__((unused)) uint8_t* v){
 
 void game_pong(void){
 
-    InputController ic;
     UserProfile p = getCurrentUserProfile();
 
-    ic.motorInputFcn =
-        p.game_pong.motorInputType == CONTROL_JOY_X ?   JOY_X_to_motor  :
-        p.game_pong.motorInputType == CONTROL_JOY_Y ?   JOY_Y_to_motor  :
-        p.game_pong.motorInputType == CONTROL_SLI_R ?   SLI_R_to_motor  :
-        p.game_pong.motorInputType == CONTROL_SLI_L ?   SLI_L_to_motor  :
-                                                        JOY_X_to_motor  ;
+    
+    InputController ic = {
+        .motorInputFcn =
+            p.game_pong.motorInputType == CONTROL_JOY_X ?   JOY_X_to_motor  :
+            p.game_pong.motorInputType == CONTROL_JOY_Y ?   JOY_Y_to_motor  :
+            p.game_pong.motorInputType == CONTROL_SLI_R ?   SLI_R_to_motor  :
+            p.game_pong.motorInputType == CONTROL_SLI_L ?   SLI_L_to_motor  :
+                                                            JOY_X_to_motor  ,
 
-    ic.motorSensitivity = p.game_pong.motorSensitivity ?: 3;
+        .motorSensitivity = p.game_pong.motorSensitivity ?: 3,
 
-    ic.servoInputFcn =
-        p.game_pong.servoInputType == CONTROL_JOY_X ?   JOY_X_to_servo  :
-        p.game_pong.servoInputType == CONTROL_JOY_Y ?   JOY_Y_to_servo  :
-        p.game_pong.servoInputType == CONTROL_SLI_R ?   SLI_R_to_servo  :
-        p.game_pong.servoInputType == CONTROL_SLI_L ?   SLI_L_to_servo  :
-                                                        SLI_R_to_servo  ;
+        .servoInputFcn =
+            p.game_pong.servoInputType == CONTROL_JOY_X ?   JOY_X_to_servo  :
+            p.game_pong.servoInputType == CONTROL_JOY_Y ?   JOY_Y_to_servo  :
+            p.game_pong.servoInputType == CONTROL_SLI_R ?   SLI_R_to_servo  :
+            p.game_pong.servoInputType == CONTROL_SLI_L ?   SLI_L_to_servo  :
+                                                            SLI_R_to_servo  ,
 
-    ic.solenoidInputFcn = 
-        p.game_pong.solenoidInputType == CONTROL_JOY_BTN    ?   JOY_BTN_to_solenoid     :
-        p.game_pong.solenoidInputType == CONTROL_JOY_UP     ?   JOY_UP_to_solenoid      :
-        p.game_pong.solenoidInputType == CONTROL_SLI_BTN_R  ?   SLI_BTN_R_to_solenoid   :
-                                                                JOY_UP_to_solenoid      ;
+        .solenoidInputFcn = 
+            p.game_pong.solenoidInputType == CONTROL_JOY_BTN    ?   JOY_BTN_to_solenoid     :
+            p.game_pong.solenoidInputType == CONTROL_JOY_UP     ?   JOY_UP_to_solenoid      :
+            p.game_pong.solenoidInputType == CONTROL_SLI_BTN_R  ?   SLI_BTN_R_to_solenoid   :
+                                                                    JOY_UP_to_solenoid      ,
+
+        .useBluetooth = p.game_pong.useBluetooth,
+    };
     
     
 
@@ -173,7 +180,7 @@ void game_pong(void){
             quit = 1;
         }
         
-        CAN_send(genControlCmd(&ic));
+        sendNewInput(&ic);
         
         if(prevLifeTime != lifeTime){
             prevLifeTime = lifeTime;

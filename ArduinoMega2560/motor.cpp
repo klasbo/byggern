@@ -39,18 +39,18 @@ uint16_t motor_read(void){
     hsb = ((hsb & 0x33) << 2) | ((hsb & 0xcc) >> 2);
     hsb = ((hsb & 0x0f) << 4) | ((hsb & 0xf0) >> 4);
     
-	PORTF |= (1 << PF4);
-	delayMicroseconds(20);
-	
-	int8_t lsb = PINK;
-	lsb = ((lsb & 0x55) << 1) | ((lsb & 0xaa) >> 1);
-	lsb = ((lsb & 0x33) << 2) | ((lsb & 0xcc) >> 2);
-	lsb = ((lsb & 0x0f) << 4) | ((lsb & 0xf0) >> 4);
-	
+    PORTF |= (1 << PF4);
+    delayMicroseconds(20);
+    
+    int8_t lsb = PINK;
+    lsb = ((lsb & 0x55) << 1) | ((lsb & 0xaa) >> 1);
+    lsb = ((lsb & 0x33) << 2) | ((lsb & 0xcc) >> 2);
+    lsb = ((lsb & 0x0f) << 4) | ((lsb & 0xf0) >> 4);
     
     
-	PORTF &= ~(1 << PF4);
-	int16_t x = (hsb << 8) + lsb;
+    
+    PORTF &= ~(1 << PF4);
+    int16_t x = (hsb << 8) + lsb;
     
     PORTF &= ~(1 << PF3);
     delayMicroseconds(20);
@@ -62,5 +62,5 @@ uint16_t motor_read(void){
 /** Speed is in range [-100, 100]
 */
 void motor_set_speed(int speed){
-	motor_write((uint8_t)(abs(speed) * 255 / 100), speed > 0 ? right : left);
+    motor_write((uint8_t)(abs(speed) * 255 / 100), speed > 0 ? right : left);
 }

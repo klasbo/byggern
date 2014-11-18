@@ -17,6 +17,7 @@ extern void controls_motor(void);
 extern void controls_motor_sensitivity(void);
 extern void controls_servo(void);
 extern void controls_solenoid(void);
+extern void controls_bluetooth(void);
 
 static menunode_t* mainMenu = &(menunode_t){
     .item = { .name = "Main Menu",                                  },
@@ -52,7 +53,7 @@ static menunode_t* mainMenu = &(menunode_t){
         
         &(menunode_t){
             .item = { .name = "Controls",                                   },
-            .num_submenus = 4,
+            .num_submenus = 5,
             .submenus = {
                 &(menunode_t){
                     .item = { .name = "Motor",          .fun = &controls_motor      },
@@ -65,6 +66,9 @@ static menunode_t* mainMenu = &(menunode_t){
                 },
                 &(menunode_t){
                     .item = { .name = "Solenoid",       .fun = &controls_solenoid   },
+                },
+                &(menunode_t){
+                    .item = { .name = "BlueTooth",      .fun = &controls_bluetooth  },
                 },
             },
         },

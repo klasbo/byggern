@@ -179,7 +179,7 @@ void user_add(void){
                                 if(pos < MAX_USERNAME_LENGTH  &&  newUser.username[pos]){
                                     pos++;
                                     c = 'a';
-                                }                                                           
+                                }
                                 break;
                             default: break;
                         }
@@ -192,6 +192,7 @@ void user_add(void){
                         newUser.game_pong.motorSensitivity  = 3;
                         newUser.game_pong.servoInputType    = CONTROL_SLI_R;
                         newUser.game_pong.solenoidInputType = CONTROL_JOY_UP;
+                        newUser.game_pong.useBluetooth      = 0;
                         writeUserProfile(&newUser, selected);
                         setCurrentUser(selected);
                         return;
@@ -393,5 +394,36 @@ void controls_solenoid(void){
                                 0 ;
             writeCurrentUserProfile(&p);
         })
+    );
+}
+
+
+void controls_bluetooth(void){
+    settingsIterator(
+    "Bluetooth",
+    lambda(void, (char* setting){
+        frame_buffer_clear();
+        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+        frame_buffer_printf("%s\n", setting);
+        frame_buffer_printf(
+        "  Off\n"
+        "  On\n"
+        );
+        
+        uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
+        if(currentControl != 0){
+            frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+            frame_buffer_printf("-");
+        }
+        
+        frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+        frame_buffer_printf("[Quit]   [Sel]");
+    }),
+    2,
+    lambda(void, (uint8_t val){
+        UserProfile p = getCurrentUserProfile();
+        p.game_pong.useBluetooth = val;
+        writeCurrentUserProfile(&p);
+    })
     );
 }

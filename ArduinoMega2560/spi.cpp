@@ -4,22 +4,16 @@
 #include "spi.h"
 
 
-/*
-brun    = pb0   = CS
-rød     = pb1   = SCK
-oransje = pb2   = SI
-gul     = pb3   = SO
-*/
-
-void SPI_init(void){
-    DDRB |=     (1<<DDB1)   // Slave Clock Input as output
+void __attribute__ ((constructor)) SPI_init(void){
+    DDRB    |=  (1<<DDB1)   // Slave Clock Input as output
             |   (1<<DDB2)   // Master Output/Slave Input as output
             |   (1<<DDB0);  // Slave Select as output
 
     DDRB &=     ~(1<<DDB3); // Master Input/Slave Output as input
 
     //SPI Control Register
-    SPCR |=     (1<<SPE)    // SPI Enable
+    SPCR    |=  (1<<SPE)    // SPI Enable
+            //|   (1<<SPIE)   // SPI Interrupt Enable
             |   (1<<SPR0)   // SCK frequency to F_OSC/16
             |   (1<<MSTR);  // Set SPI to master mode
 }
@@ -48,8 +42,4 @@ void SPI_chipselect(uint8_t enable){
         : (PORTB |= (1<<PINB0));
 }
 
-/*
-Interrupt:
-    STC (Serial Transfer Complete), p57
-    0x024
-*/
+
