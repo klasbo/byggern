@@ -28,6 +28,5 @@ void uart_init(void){
 
     UCSR0C =    (3<<UCSZ00);    // char size to 8
 
-
     fdevopen(&UART_transmit, &UART_receive);
 }

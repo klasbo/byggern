@@ -9,6 +9,5 @@ void IR_init(){
 }
 
 uint8_t IR_obstructed(void){
-    //printf("analog led %d", analogRead(analogLed));
     return (analogRead(analogLed) < threshold);
 }

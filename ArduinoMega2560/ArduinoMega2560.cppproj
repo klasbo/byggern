@@ -82,7 +82,7 @@
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -118,7 +118,7 @@
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -235,7 +235,7 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -271,7 +271,7 @@ build.arch=AVR
             <Value>C:\Program Files\Arduino\libraries</Value>
             <Value>C:\Program Files\Arduino\hardware\arduino\libraries</Value>
             <Value>C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers</Value>
-            <Value>C:\Users\eirikws\Documents\Arduino\libraries</Value>
+            <Value>C:\Users\andepete\Documents\Arduino\libraries</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\include\avr\</Value>
             <Value>c:\program files\arduino\hardware\tools\avr\avr\</Value>
@@ -365,10 +365,10 @@ build.arch=AVR
     <Folder Include="Visual Micro\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="analog_info.cpp">
+    <Compile Include="bluetooth.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="analog_info.h">
+    <Compile Include="bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="can.cpp">
@@ -377,10 +377,13 @@ build.arch=AVR
     <Compile Include="can.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="led.cpp">
+    <Compile Include="can_types.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="led.h">
+    <Compile Include="ir.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ir.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcp2515.cpp">

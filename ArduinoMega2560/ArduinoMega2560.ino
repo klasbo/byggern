@@ -4,13 +4,11 @@
 #include "ir.h"
 #include "uart.h"
 #include "motor.h"
-#include "analog_info.h"
 
 #include <stdio.h>
 #include <Arduino.h>
 #include <Servo/Servo.h>
 #include <Wire/Wire.h>
-#include "pid.h"
 #include "bluetooth.h"
 
 
@@ -31,19 +29,17 @@ int main(void){
     motor_init();
 
     // Solenoid pin
-    pinMode(7, OUTPUT);
+    pinMode(solenoidPin, OUTPUT);
 
     Servo s;
     s.attach(6);
 
-    BT_init(&s, 0.01);
+    BT_init(&s, 0.05);
 
-    //PID mypid(0.7, 0.3, 0, 0.005, 1);
 
     can_msg_t   recvMsg;
     ControlCmd  cmd;
     uint8_t     game_over;
-    printf("started\n");
 
     int16_t i=0;
 
@@ -51,18 +47,11 @@ int main(void){
         recvMsg     = CAN_recv();
         game_over   = IR_obstructed();
 
-
-        //if (i++%500==0){
-        //    printf("ref %d\n", cmd.motorSpeed);
-        //}
         switch(recvMsg.ID){
             case CANID_ControlCmd:
                 memcpy(&cmd, recvMsg.data, recvMsg.length);
                 
-                //printf("received can ControlCmd: (%d, %d, %d)\n", cmd.motorSpeed, cmd.servoPos, cmd.solenoid);
-                
                 motor_set_speed(cmd.motorSpeed);
-                //mypid.update_reference(2.4*cmd.motorSpeed);
                 
                 s.write(cmd.servoPos);
                 

@@ -15,12 +15,10 @@ void motor_init(void){
             |   (1<<DDF6);  // Motor direction
             
     DDRK = 0;
-    
     PORTF &= ~(1 << PF2);
     PORTF |= (1 << PF3);
     PORTF &= ~(1 << PF4);
     PORTF |= (1 << PF5);
-    
 }
 
 void motor_write(uint8_t speed, uint8_t dir){
@@ -36,8 +34,6 @@ void motor_write(uint8_t speed, uint8_t dir){
 }
 
 uint16_t motor_read(void){
-    
-	//PORTF &= ~(1<<PINF2); //enable read encoder 
     int8_t hsb = PINK;
     hsb = ((hsb & 0x55) << 1) | ((hsb & 0xaa) >> 1);
     hsb = ((hsb & 0x33) << 2) | ((hsb & 0xcc) >> 2);
@@ -60,24 +56,7 @@ uint16_t motor_read(void){
     delayMicroseconds(20);
     PORTF |= (1 << PF3);
     
-	//PORTF |= (1<<PINF2); //disable read encoder 
     return x;
-    
-	
-}
-
-
-motor_range motor_calibrate(void){
-	motor_range range;
-	motor_write(100, left);
-	delay(1000);
-	range.max_r = motor_read();
-	printf("intern print max r:  %d\n", range.max_r);
-	motor_write(100, right);
-	delay(1000);	 
-	range.max_l = motor_read();
-	printf("intern print max l:  %d\n", range.max_l);
-	return range;
 }
 
 /** Speed is in range [-100, 100]
