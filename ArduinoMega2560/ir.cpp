@@ -5,9 +5,9 @@
 #include <stdint.h>
 
 void IR_init(){
-    pinMode(analogLed, INPUT);
+    pinMode(IRPin, INPUT);
 }
 
 uint8_t IR_obstructed(void){
-    return (analogRead(analogLed) < threshold);
+    return (analogRead(IRPin) < threshold);
 }

@@ -3,7 +3,7 @@
 #include <Servo.h>
 #include <stdint.h>
 
-#define solenoidPin 7
+#include "pin_config.h"
 
 void BT_run(Servo* s);
 void BT_enable_interrupts();

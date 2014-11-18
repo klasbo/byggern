@@ -2,7 +2,8 @@
 
 #include <Arduino.h>
 
-#define analogLed A0
+#include "pin_config.h"
+
 #define threshold 50
 
 

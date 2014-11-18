@@ -154,7 +154,7 @@ Vector getVector(Direction const d);
 Actuator* new_Actuator(uint8_t const type);
 void actuatorDrawBackground(Actuator const * const a);
 void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am);
-//void actuateUART(Grid const * const g, ActuatorMetadata const am);
+void actuateUART(Grid const * const g, ActuatorMetadata const am);
 
 
 
@@ -500,11 +500,11 @@ Actuator* new_Actuator(uint8_t const __attribute__((unused)) type){
     Actuator* a = malloc(sizeof(Actuator));
     memset(a, 0, sizeof(Actuator));
 
-    //if(type == ActuatorTypeFrameBuffer){
+    if(type == ActuatorTypeFrameBuffer){
         a->actuate = actuateFrameBuffer;
-    //} else if(type == ActuatorTypeUART){
-    //    a->actuate = actuateUART;
-    //}
+    } else if(type == ActuatorTypeUART){
+        a->actuate = actuateUART;
+    }
     actuatorDrawBackground(a);
     return a;
 }
@@ -591,7 +591,7 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
     frame_buffer_render();
 }
 
-/*
+
 void actuateUART(Grid const * const g, ActuatorMetadata const am){
     printf("+----+----+----+----+\n");
     for(int y = 0; y < SIZE; y++){
@@ -608,7 +608,7 @@ void actuateUART(Grid const * const g, ActuatorMetadata const am){
     printf("+----+----+----+----+\n");
     printf("Score: %5ld\n", am.score);
 }
-*/
+
 
 // --- MAIN / GAME --- //
 

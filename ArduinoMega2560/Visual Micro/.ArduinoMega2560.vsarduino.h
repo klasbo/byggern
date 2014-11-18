@@ -32,6 +32,7 @@ int main(void);
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\mcp2515.h"
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\motor.cpp"
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\motor.h"
+#include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\pin_config.h"
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\spi.cpp"
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\spi.h"
 #include "C:\Users\andepete\Desktop\byggern\ArduinoMega2560\uart.cpp"

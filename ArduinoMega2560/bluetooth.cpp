@@ -74,13 +74,13 @@ void BT_run(Servo* s){
 			servo_moving = -1;	
             break;
         case 'p': // solenoid
-            digitalWrite(solenoidPin,1);        
+            digitalWrite(solenoidPin, 1);        
             break;
         case 'x': // button is released
             interrupts();
             motor_set_speed(0);
             noInterrupts();
-            digitalWrite(solenoidPin,0);
+            digitalWrite(solenoidPin, 0);
             break;
 		case 'z': // servo is released
 			servo_moving = 0;

@@ -29,8 +29,6 @@ int main(void){
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     
-    //printf_P(PSTR("\nstarted!\n"));
-    
     menunode_t* menu        = get_menu();
     menunode_t* prev_menu   = 0;
     

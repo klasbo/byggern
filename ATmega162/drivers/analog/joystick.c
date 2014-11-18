@@ -25,19 +25,13 @@ JOY_pos_t JOY_get_position(void){
     uint8_t x_pos_u = ADC_read(JOY_X);
     uint8_t y_pos_u = ADC_read(JOY_Y);
     
-    #define saturated_subtract(result, a, b) \
-        int8_t result = \
-            b > 128 && (uint8_t)(127 + b)  >=  a    ?   -128    : \
-            b < 128 && (uint8_t)(128 + b)  <=  a    ?   127     : \
-                                                        (int8_t)(a - b);
-    
-    #define saturated_subtract2(result, input,center)\
+    #define saturated_subtract(result, input,center)\
         int8_t result=\
             (input<center) ?   -((center-input)*100)/(center) :\
             ((input-center)*100)/(255-center);
                                                        
-    saturated_subtract2(x_pos, x_pos_u, center_x)
-    saturated_subtract2(y_pos, y_pos_u, center_y)
+    saturated_subtract(x_pos, x_pos_u, center_x)
+    saturated_subtract(y_pos, y_pos_u, center_y)
     
     return (JOY_pos_t){
         .x = x_pos,

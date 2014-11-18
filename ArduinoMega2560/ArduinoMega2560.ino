@@ -9,12 +9,8 @@
 #include "uart.h"
 #include "motor.h"
 #include "bluetooth.h"
-
-
+#include "pin_config.h"
 #include "can_types.h"
-
-
-#define CAN_JOYSTICK_ID 3
 
 
 int main(void){
@@ -22,15 +18,14 @@ int main(void){
     init();
     uart_init();
     CAN_init();
-    IR_init(); // not necessary?
+    IR_init();
 
     motor_init();
 
-    // Solenoid pin
     pinMode(solenoidPin, OUTPUT);
 
     Servo s;
-    s.attach(6);
+    s.attach(servoPin);
 
     BT_init(&s, 0.05);
 
@@ -53,7 +48,7 @@ int main(void){
                 
                 s.write(cmd.servoPos);
                 
-                digitalWrite(7, cmd.solenoid ? 1 : 0);
+                digitalWrite(solenoidPin, cmd.solenoid ? 1 : 0);
 
                 
                 break;
