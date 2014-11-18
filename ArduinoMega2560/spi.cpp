@@ -13,7 +13,6 @@ void __attribute__ ((constructor)) SPI_init(void){
 
     //SPI Control Register
     SPCR    |=  (1<<SPE)    // SPI Enable
-            //|   (1<<SPIE)   // SPI Interrupt Enable
             |   (1<<SPR0)   // SCK frequency to F_OSC/16
             |   (1<<MSTR);  // Set SPI to master mode
 }

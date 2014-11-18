@@ -21,7 +21,6 @@ int main(void){
     extern void init(void);
     init();
     uart_init();
-    SPI_init();
     CAN_init();
     IR_init(); // not necessary?
 
