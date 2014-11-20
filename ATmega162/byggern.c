@@ -29,7 +29,7 @@ int main(void){
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     
-    menunode_t* menu        = get_menu();
+    menunode_t* menu        = menu_open(get_menu());
     menunode_t* prev_menu   = 0;
     
     JOY_dir_t   dirn        = JOY_get_direction();
@@ -38,8 +38,12 @@ int main(void){
     while(1){
         if_assignment_modifies(dirn, JOY_get_direction()){
             switch(dirn){
+                case LEFT:
+                    if(menu_close(menu) != get_menu()){
+                        menu = menu_close(menu);
+                    }
+                    break;
                 case RIGHT: menu = menu_open(menu);     break;
-                case LEFT:  menu = menu_close(menu);    break;
                 case DOWN:  menu = menu_next(menu);     break;
                 case UP:    menu = menu_prev(menu);     break;
                 default: break;
@@ -56,7 +60,7 @@ int main(void){
             frame_buffer_printf("%s\n", menu_close(menu)->item.name);
 
             // Submenu names
-            foreach_submenu(menu_close(menu), lambda(void, (menunode_t* m, __attribute__((unused)) int idx){
+            foreach_submenu(menu_close(menu), lambda(void, (menunode_t* m, __attribute__((unused)) int8_t idx){
                 frame_buffer_printf("  %s\n", m->item.name);
             }));
             

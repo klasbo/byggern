@@ -151,10 +151,11 @@ uint8_t tileMatchesAvailable(GameManager const * const gm);
 // --- VECTOR FUNCTIONS --- //
 Vector getVector(Direction const d);
 // --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(uint8_t const type);
-void actuatorDrawBackground(Actuator const * const a);
+Actuator* new_Actuator(void);
 void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am);
 void actuateUART(Grid const * const g, ActuatorMetadata const am);
+// --- MISC FUNCTIONS --- //
+void drawBackground();
 
 
 
@@ -266,7 +267,7 @@ GameManager* new_GameManager(){
     
     gm->grid            = new_Grid();
     gm->numStartTiles   = NUM_START_TILES;
-    gm->actuator        = new_Actuator(ActuatorTypeFrameBuffer);
+    gm->actuator        = new_Actuator();
     gm->userProfile     = malloc(sizeof(UserProfile));
     *gm->userProfile    = getCurrentUserProfile();
     
@@ -426,6 +427,8 @@ void move(GameManager* const gm, Direction const d){
                     if((1 << merged->value) == TILE_2048){
                         gm->won = 1;
                     }
+                    free(t);
+                    free(next);
                 } else {
                     moveTile(gm, t, fp.farthest);
                 }
@@ -496,16 +499,12 @@ Vector getVector(Direction d){
 
 
 // --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(uint8_t const __attribute__((unused)) type){
+Actuator* new_Actuator(void){
     Actuator* a = malloc(sizeof(Actuator));
     memset(a, 0, sizeof(Actuator));
 
-    if(type == ActuatorTypeFrameBuffer){
-        a->actuate = actuateFrameBuffer;
-    } else if(type == ActuatorTypeUART){
-        a->actuate = actuateUART;
-    }
-    actuatorDrawBackground(a);
+    a->actuate = actuateFrameBuffer;
+    drawBackground();
     return a;
 }
 
@@ -514,31 +513,29 @@ Actuator* new_Actuator(uint8_t const __attribute__((unused)) type){
 #define SLIDER_R_BBOX           111, 126, 54,  62
 #define SLIDER_R_TEXT_CURSOR    113, 56
 
-void actuatorDrawBackground(Actuator const * const a){
-    if(a->actuate == actuateFrameBuffer){
-        frame_buffer_clear();
-        for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
-            for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
-                frame_buffer_draw_rectangle(0, x, 0, y);
-            }
+void drawBackground(void){
+    frame_buffer_clear();
+    for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
+        for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
+            frame_buffer_draw_rectangle(0, x, 0, y);
         }
-        
-        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-        frame_buffer_set_font_spacing(-2, 0);
-
-        frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 0);
-        frame_buffer_printf("Score");
-
-        frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 20);
-        frame_buffer_printf("Best");
-        
-        frame_buffer_draw_rectangle(SLIDER_L_BBOX);
-        frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
-        frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
-        frame_buffer_draw_char(17);     // Quit
-
-        frame_buffer_render();
     }
+        
+    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+    frame_buffer_set_font_spacing(-2, 0);
+
+    frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 0);
+    frame_buffer_printf("Score");
+
+    frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 20);
+    frame_buffer_printf("Best");
+        
+    frame_buffer_draw_rectangle(SLIDER_L_BBOX);
+    frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+    frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
+    frame_buffer_draw_char(17);     // Quit
+
+    frame_buffer_render();
 }
 
 void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
@@ -592,24 +589,6 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
 }
 
 
-void actuateUART(Grid const * const g, ActuatorMetadata const am){
-    printf("+----+----+----+----+\n");
-    for(int y = 0; y < SIZE; y++){
-        printf("|");
-        for(int x = 0; x < SIZE; x++){
-            if(g->tiles[x][y]){
-                printf("%4d|", 1 << g->tiles[x][y]->value);
-                } else {
-                printf("    |");
-            }
-        }
-        printf("\n");
-    }
-    printf("+----+----+----+----+\n");
-    printf("Score: %5ld\n", am.score);
-}
-
-
 // --- MAIN / GAME --- //
 
 void game_2048(){
@@ -624,7 +603,7 @@ void game_2048(){
     frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     frame_buffer_set_font_spacing(-2, 0);
     
-    actuatorDrawBackground(gm->actuator);   // for some reason the text isn't drawn the first time. (WAT)
+    drawBackground();   // for some reason the text isn't drawn the first time. (WAT)
     actuate(gm);
 
     while(!quit){
@@ -653,7 +632,7 @@ void game_2048(){
                     writeCurrentUserProfile(gm->userProfile);
                     delete_GameManager(&gm);
                     gm = new_GameManager();
-                    actuatorDrawBackground(gm->actuator);
+                    drawBackground();
                     actuate(gm);
                 }
             } else if(gm->won){
@@ -665,7 +644,7 @@ void game_2048(){
                 if(SLI_get_right_button()){ // keep playing
                     gm->keepPlaying = 1;
                     frame_buffer_clear();
-                    actuatorDrawBackground(gm->actuator);
+                    drawBackground();
                     actuate(gm);
                 }
             }

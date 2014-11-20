@@ -1,10 +1,9 @@
 
 #pragma once
 
-#define MAX_submenus 5
+#include <stdint.h>
+#include <stdlib.h>
 
-// Allow menu_close() to return the root node of the menu tree (get_menu())?
-#define ALLOW_RETURN_ROOT 0
 
 typedef struct menuitem_t menuitem_t;
 typedef struct menunode_t menunode_t;
@@ -16,8 +15,8 @@ struct menuitem_t {
 
 struct menunode_t {
     menuitem_t      item;
-    int             num_submenus;
-    menunode_t*     submenus[MAX_submenus];
+    int8_t          num_submenus;
+    menunode_t**    submenus;
     menunode_t*     parent;
 };
 
@@ -28,11 +27,11 @@ menunode_t* get_menu(void);
 
 /** Get the depth (number of parents) of this node
 */
-int menu_depth(menunode_t* const menu);
+int8_t menu_depth(menunode_t* const menu);
 
 /** Get the index in the submenu list of the parents node
 */
-int menu_index(menunode_t* const menu);
+int8_t menu_index(menunode_t* const menu);
 
 
 
@@ -42,7 +41,7 @@ int menu_index(menunode_t* const menu);
     The submenu (if it exists), or
     Itself (if it doesn't)
 */
-menunode_t* menu_open_submenu(menunode_t* const menu, int submenu_idx);
+menunode_t* menu_open_submenu(menunode_t* const menu, int8_t submenu_idx);
 
 /** Tries to open the first submenu of menu, and returns either:
     The first submenu (if it exists), or
@@ -74,21 +73,21 @@ menunode_t* menu_prev(menunode_t* const menu);
 /** Applies func to each parent of menu
     depth is incremented by 1 for each outward step towards the root node
 */
-void foreach_parent(menunode_t* const menu, void func(menunode_t* m, int depth));
+void foreach_parent(menunode_t* const menu, void func(menunode_t* m, int8_t depth));
 
 /** Applies func to each parent, but starting at the root node.
     depth is incremented by 1 for each inward step towards menu
     (Implementation detail: Recursive function)
 */
-void foreach_parent_reverse(menunode_t* const menu, void func(menunode_t* m, int depth));
+void foreach_parent_reverse(menunode_t* const menu, void func(menunode_t* m, int8_t depth));
 
 /** Applies func to each next menu
     idx is incremented by 1 for each next menu
     note: idx corresponds to the index in the parent's submenu list (it does not start at 0)
 */
-void foreach_nextmenu(menunode_t* const menu, void func(menunode_t* m, int idx));
+void foreach_nextmenu(menunode_t* const menu, void func(menunode_t* m, int8_t idx));
 
 /** Applies func to each submenu
     idx is incremented by 1 for each next menu
 */
-void foreach_submenu(menunode_t* const menu, void func(menunode_t* m, int idx));
+void foreach_submenu(menunode_t* const menu, void func(menunode_t* m, int8_t idx));
