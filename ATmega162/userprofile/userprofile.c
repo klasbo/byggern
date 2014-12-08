@@ -61,10 +61,11 @@ void deleteUserProfile(uint8_t user){
 }
 
 
-void renderUsernames(char* info){
+
+void renderUsernamesBackground(char* title){
     frame_buffer_clear();
     frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    frame_buffer_printf("%s\n", info);
+    frame_buffer_printf("%s\n", title);
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         if(i == getCurrentUser()){
             frame_buffer_printf("-");
@@ -77,13 +78,13 @@ void renderUsernames(char* info){
 }
 
 
+
 void settingsIterator(
-    char*   actionInfo,
-    void    (*renderBackground)(char*),
+    void    (*renderBackground)(void),
     uint8_t numItems,
     void    (*action)(uint8_t)
 ){
-    renderBackground(actionInfo);
+    renderBackground();
 
     JOY_dir_t joyDirnPrev   = NEUTRAL;
     JOY_dir_t joyDirn       = NEUTRAL;
@@ -118,7 +119,7 @@ void settingsIterator(
         }
         if(SLI_get_right_button() && SLIRightButtonReleased){
             action(selected);
-            renderBackground(actionInfo);
+            renderBackground();
         }
         if(SLI_get_left_button()){
             return;
@@ -128,13 +129,20 @@ void settingsIterator(
 
 
 void user_login(void){
-    settingsIterator("Login As", renderUsernames, MAX_NUM_USERS, setCurrentUser);
+    settingsIterator(
+        lambda(void, (void){
+            renderUsernamesBackground("Login As");
+        }),
+        MAX_NUM_USERS,
+        setCurrentUser
+    );
 }
 
 void user_add(void){
     settingsIterator(
-        "Add user",
-        renderUsernames,
+        lambda(void, (void){
+            renderUsernamesBackground("Add User");
+        }),
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
@@ -206,12 +214,17 @@ void user_add(void){
     );
 }
 
-
-
-
 void user_delete(void){ 
-    settingsIterator("Delete", renderUsernames, MAX_NUM_USERS, deleteUserProfile);
+    settingsIterator(
+        lambda(void, (void){
+            renderUsernamesBackground("Delete");
+        }),
+        MAX_NUM_USERS,
+        deleteUserProfile
+    );
 }
+
+
 
 void user_highscores_pong(void){
     frame_buffer_clear();
@@ -257,11 +270,10 @@ void user_highscores_2048(void){
 
 void controls_motor(void){
     settingsIterator(
-        "Motor",
-        lambda(void, (char* setting){
+        lambda(void, (void){
             frame_buffer_clear();
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf("Motor\n");
             frame_buffer_printf(
                 "  Joy X\n"
                 "  Joy Y\n"
@@ -294,11 +306,10 @@ void controls_motor(void){
 
 void controls_motor_sensitivity(void){
     settingsIterator(
-        "Sensitivity",
-        lambda(void, (char* setting){
+        lambda(void, (void){
             frame_buffer_clear();
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf("Sensitivity\n");
             frame_buffer_printf(
               "  1\n"
               "  2\n"
@@ -327,11 +338,10 @@ void controls_motor_sensitivity(void){
 
 void controls_servo(void){
     settingsIterator(
-        "Servo",
-        lambda(void, (char* setting){
+        lambda(void, (void){
             frame_buffer_clear();
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf("Servo\n");
             frame_buffer_printf(
                 "  Joy X\n"
                 "  Joy Y\n"
@@ -364,11 +374,10 @@ void controls_servo(void){
 
 void controls_solenoid(void){
     settingsIterator(
-        "Solenoid",
-        lambda(void, (char* setting){
+        lambda(void, (void){
             frame_buffer_clear();
             frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("%s\n", setting);
+            frame_buffer_printf("Solenoid\n");
             frame_buffer_printf(
                 "  Joy Btn\n"
                 "  Joy Up\n"
@@ -397,33 +406,31 @@ void controls_solenoid(void){
     );
 }
 
-
 void controls_bluetooth(void){
     settingsIterator(
-    "Bluetooth",
-    lambda(void, (char* setting){
-        frame_buffer_clear();
-        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-        frame_buffer_printf("%s\n", setting);
-        frame_buffer_printf(
-        "  Off\n"
-        "  On\n"
-        );
-        
-        uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
-        if(currentControl != 0){
-            frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
-            frame_buffer_printf("-");
-        }
-        
-        frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
-        frame_buffer_printf("[Quit]   [Sel]");
-    }),
-    2,
-    lambda(void, (uint8_t val){
-        UserProfile p = getCurrentUserProfile();
-        p.game_pong.useBluetooth = val;
-        writeCurrentUserProfile(&p);
-    })
+        lambda(void, (void){
+            frame_buffer_clear();
+            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
+            frame_buffer_printf("Bluetooth\n");
+            frame_buffer_printf(
+            "  Off\n"
+            "  On\n"
+            );
+            
+            uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
+            if(currentControl != 0){
+                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_printf("-");
+            }
+            
+            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_printf("[Quit]   [Sel]");
+        }),
+        2,
+        lambda(void, (uint8_t val){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.useBluetooth = val;
+            writeCurrentUserProfile(&p);
+        })
     );
 }
