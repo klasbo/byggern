@@ -165,7 +165,7 @@ void game_pong(void){
             "PONG\n"
             " You vs Gravity"
         );
-        frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+        frame_buffer_set_cursor(0, 7);
         frame_buffer_printf("[Quit]");
         frame_buffer_render();
     }
@@ -184,7 +184,7 @@ void game_pong(void){
         
         if(prevLifeTime != lifeTime){
             prevLifeTime = lifeTime;
-            frame_buffer_set_cursor(0, 28);
+            frame_buffer_set_cursor_to_pixel(0, 28);
             frame_buffer_printf("%5d Seconds", lifeTime);
             frame_buffer_render();
         }        
@@ -193,11 +193,11 @@ void game_pong(void){
         recvMsg = CAN_recv();
         switch(recvMsg.ID){
             case CANID_GameOver:
-                frame_buffer_set_cursor(20, 20);
+                frame_buffer_set_cursor_to_pixel(20, 20);
                 frame_buffer_printf(
                     "Game over!\n"
                 );
-                frame_buffer_set_cursor(0, 6*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, 6);
                 frame_buffer_printf(
                     "Play again?\n"
                     "[No]       [Yes]"

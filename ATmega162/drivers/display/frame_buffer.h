@@ -81,9 +81,11 @@ void frame_buffer_draw_char(char c);
 
 void frame_buffer_set_font(void* addr, uint8_t width, uint8_t height, uint8_t start_offset);
 
-void frame_buffer_set_font_spacing(uint8_t horizontal, uint8_t vertical);
+void frame_buffer_set_font_spacing(int8_t horizontal, int8_t vertical);
 
-void frame_buffer_set_cursor(uint8_t x, uint8_t y);
+void frame_buffer_set_cursor_to_pixel(uint8_t x, uint8_t y);
+
+void frame_buffer_set_cursor(uint8_t col, uint8_t row);
 
 
 /// ----- misc ----- ///

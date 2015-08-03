@@ -13,16 +13,16 @@ static volatile void*   fb_addr;
 
 #define frame ( (uint8_t(*)[COLUMNS]) (fb_addr) )
 
-static int              col;
-static int              line;
+static uint8_t          cursor_x;
+static uint8_t          cursor_y;
 
-static int              font_width;
-static int              font_height;
+static uint8_t          font_width;
+static uint8_t          font_height;
 static char             font_start_offset;
 static unsigned char*   font;
 
-static uint8_t          font_horiz_spacing;
-static uint8_t          font_vert_spacing;
+static int8_t           font_horiz_spacing;
+static int8_t           font_vert_spacing;
 
 void __attribute__((constructor)) frame_buffer_init(void){
     frame_buffer_set_addr(ext_ram);
@@ -43,8 +43,8 @@ void frame_buffer_render(void){
 
 void frame_buffer_clear(void){
     memset((void*)fb_addr, 0, 0x400);
-    col = 0;
-    line = 0;
+    cursor_x = 0;
+    cursor_y = 0;
 }
 
 uint8_t reverse_bits(uint8_t x){
@@ -97,7 +97,7 @@ void frame_buffer_draw_lower_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
 
 
 void frame_buffer_draw_pixel(uint8_t b, uint8_t x, uint8_t y){
-    if(x >= COLUMNS || y >= PAGES*8){ return; }
+    if(x >= COLUMNS || y >= ROWS){ return; }
 
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
@@ -180,21 +180,21 @@ void frame_buffer_printf_P(const char* fmt, ...){
 
 void frame_buffer_draw_char(char c){
     if(c == '\n'  &&  '\n' < font_start_offset){    // special case for newline when it is not part of the font
-        for(int i = col; i < COLUMNS; i++){
-            frame_buffer_draw_upper_n(0, i, line, font_height);
+        for(uint8_t x = cursor_x; x < COLUMNS; x++){
+            frame_buffer_draw_upper_n(0, x, cursor_y, font_height);
         }
-        line = (line + font_height + font_vert_spacing) % ROWS;
-        col = 0;
+        cursor_y = (cursor_y + font_height + font_vert_spacing) % ROWS;
+        cursor_x = 0;
     } else {
-        for(int i = 0; i < font_width; i++){
+        for(uint8_t x = 0; x < font_width; x++){
             frame_buffer_draw_upper_n(
-                pgm_read_byte( font + (c-font_start_offset)*font_width + i ),
-                col + i,
-                line,
+                pgm_read_byte( font + (c-font_start_offset)*font_width + x ),
+                cursor_x + x,
+                cursor_y,
                 font_height
             );
         }
-        col += font_width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
+        cursor_x += font_width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
     }
 }
 
@@ -206,12 +206,17 @@ void frame_buffer_set_font(void* addr, uint8_t width, uint8_t height, uint8_t st
     frame_buffer_set_font_spacing(0, 0);
 }
 
-void frame_buffer_set_font_spacing(uint8_t horizontal, uint8_t vertical){
+void frame_buffer_set_font_spacing(int8_t horizontal, int8_t vertical){
     font_horiz_spacing = horizontal;
     font_vert_spacing  = vertical;
 }
 
-void frame_buffer_set_cursor(uint8_t x, uint8_t y){
-    col = x;
-    line = y;
+void frame_buffer_set_cursor_to_pixel(uint8_t x, uint8_t y){
+    cursor_x = x;
+    cursor_y = y;
+}
+
+void frame_buffer_set_cursor(uint8_t col, uint8_t row){
+    cursor_x = col * (font_width + font_horiz_spacing);
+    cursor_y = row * (font_height + font_vert_spacing);
 }

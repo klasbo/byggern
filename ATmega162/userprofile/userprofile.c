@@ -70,7 +70,7 @@ void renderUsernamesBackground(char* title){
         if(i == getCurrentUser()){
             frame_buffer_printf("-");
         }
-        frame_buffer_set_cursor(2*FONT8x8_WIDTH, (i+1) * FONT8x8_HEIGHT);
+        frame_buffer_set_cursor(2, i+1);
         frame_buffer_printf("%s\n", getUserProfile(i).username);
     }
     frame_buffer_printf("[Quit]   [Sel]");
@@ -93,14 +93,14 @@ void settingsIterator(
     uint8_t SLIRightButtonReleased = 0;
     
     while(1){
-        frame_buffer_set_cursor(1*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
+        frame_buffer_set_cursor(1, selected+1);
         frame_buffer_printf(">");
         frame_buffer_render();
 
         joyDirnPrev = joyDirn;
         joyDirn = JOY_get_direction();
         if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
-            frame_buffer_set_cursor(1*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(1, selected+1);
             frame_buffer_printf(" ");
             switch(joyDirn){
                 case UP:
@@ -146,7 +146,7 @@ void user_add(void){
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
-                frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, 7);
                 frame_buffer_printf("[Back]    [Ok]");
                 frame_buffer_render();
                 UserProfile newUser = getUserProfile(selected);
@@ -158,7 +158,7 @@ void user_add(void){
                 JOY_dir_t   joyDirn                 = NEUTRAL;
                 while(1){
                     newUser.username[pos] = c;
-                    frame_buffer_set_cursor(2*FONT8x8_WIDTH, (selected+1) * FONT8x8_HEIGHT);
+                    frame_buffer_set_cursor(2, selected+1);
                     frame_buffer_printf("%-8s", newUser.username);
                     frame_buffer_render();
 
@@ -232,11 +232,11 @@ void user_highscores_pong(void){
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         UserProfile p = getUserProfile(i);
         if(p.username[0]){
-            frame_buffer_set_cursor(0, (i+1)*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, i+1);
             frame_buffer_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
         }
     }
-    frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+    frame_buffer_set_cursor(0, 7);
     frame_buffer_printf("[Quit]");
     frame_buffer_render();
     while(1){
@@ -252,11 +252,11 @@ void user_highscores_2048(void){
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         UserProfile p = getUserProfile(i);
         if(p.username[0]){
-            frame_buffer_set_cursor(0, (i+1)*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, i+1);
             frame_buffer_printf("%-8s: %5d\n", p.username, p.game_2048.bestScore);
         }
     }
-    frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+    frame_buffer_set_cursor(0, 7);
     frame_buffer_printf("[Quit]");
     frame_buffer_render();
     while(1){
@@ -283,11 +283,11 @@ void controls_motor(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.motorInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, currentControl);
                 frame_buffer_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, 7);
             frame_buffer_printf("[Quit]   [Sel]");
         }),
         4,
@@ -320,11 +320,11 @@ void controls_motor_sensitivity(void){
 
             uint8_t currentValue = getCurrentUserProfile().game_pong.motorSensitivity;
             if(currentValue != 0){
-                frame_buffer_set_cursor(0, currentValue*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, currentValue);
                 frame_buffer_printf("-");
             }
 
-            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, 7);
             frame_buffer_printf("[Quit]   [Sel]");
         }),
         5,
@@ -351,11 +351,11 @@ void controls_servo(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.servoInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, currentControl);
                 frame_buffer_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, 7);
             frame_buffer_printf("[Quit]   [Sel]");
         }),
         4,
@@ -386,11 +386,11 @@ void controls_solenoid(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.solenoidInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, currentControl);
                 frame_buffer_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, 7);
             frame_buffer_printf("[Quit]   [Sel]");
         }),
         3,
@@ -419,11 +419,11 @@ void controls_bluetooth(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl*FONT8x8_HEIGHT);
+                frame_buffer_set_cursor(0, currentControl);
                 frame_buffer_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, 7);
             frame_buffer_printf("[Quit]   [Sel]");
         }),
         2,

@@ -65,12 +65,12 @@ int main(void){
             }));
             
             // Indicate which item is selected
-            frame_buffer_set_cursor(0, (menu_index(menu)+1)*FONT8x8_HEIGHT);
+            frame_buffer_set_cursor(0, menu_index(menu)+1);
             frame_buffer_printf(">");
             
             // Indicate runnable program
             if(menu->item.fun){
-                frame_buffer_set_cursor(10*FONT8x8_WIDTH, 7*FONT8x8_HEIGHT-1);
+                frame_buffer_set_cursor(10, 7);
                 frame_buffer_printf("[Open]");
             }
 

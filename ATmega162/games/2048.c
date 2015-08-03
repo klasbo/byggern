@@ -524,14 +524,14 @@ void drawBackground(void){
     frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     frame_buffer_set_font_spacing(-2, 0);
 
-    frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 0);
+    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 0);
     frame_buffer_printf("Score");
 
-    frame_buffer_set_cursor(GRID_SIZE_X*4 + 3, 20);
+    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 20);
     frame_buffer_printf("Best");
         
     frame_buffer_draw_rectangle(SLIDER_L_BBOX);
-    frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+    frame_buffer_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
     frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
     frame_buffer_draw_char(17);     // Quit
 
@@ -544,7 +544,7 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
             frame_buffer_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
             if(g->tiles[x][y]){
                 frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
-                frame_buffer_set_cursor(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
+                frame_buffer_set_cursor_to_pixel(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
                 frame_buffer_draw_char(g->tiles[x][y]->value);
             }
         }
@@ -553,36 +553,36 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
     frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
     frame_buffer_set_font_spacing(-2, 0);
 
-    frame_buffer_set_cursor(GRID_SIZE_X*SIZE + 2, 8);
+    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 8);
     frame_buffer_printf("%6ld", am.score);
 
-    frame_buffer_set_cursor(GRID_SIZE_X*SIZE + 2, 28);
+    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 28);
     frame_buffer_printf("%6ld", am.bestScore);
 
     if(am.terminated){
         if(am.over){
             frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor(2, 25);
+            frame_buffer_set_cursor_to_pixel(2, 25);
             frame_buffer_printf("Game over!");
             
             frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor(11, 46);
+            frame_buffer_set_cursor_to_pixel(11, 46);
             frame_buffer_printf("New game?");
         } else if(am.won){
             frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor(9, 25);
+            frame_buffer_set_cursor_to_pixel(9, 25);
             frame_buffer_printf("You win!");
             
             frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor(11, 46);
+            frame_buffer_set_cursor_to_pixel(11, 46);
             frame_buffer_printf("Keep Playing?");            
         }
         frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
         frame_buffer_draw_rectangle(SLIDER_L_BBOX);
-        frame_buffer_set_cursor(SLIDER_L_TEXT_CURSOR);
+        frame_buffer_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
         frame_buffer_draw_char(15);     // No
         frame_buffer_draw_rectangle(SLIDER_R_BBOX);
-        frame_buffer_set_cursor(SLIDER_R_TEXT_CURSOR);
+        frame_buffer_set_cursor_to_pixel(SLIDER_R_TEXT_CURSOR);
         frame_buffer_draw_char(16);     // Yes
     }
     frame_buffer_render();
