@@ -38,7 +38,7 @@ void fbuf_draw_byte(uint8_t b, uint8_t x, uint8_t page);
     Only the top n bits (n least significant bits) are drawn,
         with the LSB starting at (x, y)
 */
-void fbuf_draw_upper_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n);
+void fbuf_draw_high_bits(uint8_t byte, uint8_t x, uint8_t y, uint8_t n);
 
 
 /** Draw a masked byte to pixel coordinates (x, y)
@@ -46,7 +46,7 @@ void fbuf_draw_upper_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n);
         shifted upward such that the least significant bit *after masking*
         is drawn at (x, y)
 */
-void fbuf_draw_lower_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n);
+void fbuf_draw_low_bits(uint8_t byte, uint8_t x, uint8_t y, uint8_t n);
 
 
 /** Draws a single pixel at (x, y)

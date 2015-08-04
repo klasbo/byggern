@@ -59,7 +59,7 @@ void fbuf_draw_byte(uint8_t b, uint8_t column, uint8_t page){
 }
 
 //TODO: rename!
-void fbuf_draw_upper_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
+void fbuf_draw_high_bits(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
 
@@ -76,7 +76,7 @@ void fbuf_draw_upper_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
     }
 }
     
-void fbuf_draw_lower_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
+void fbuf_draw_low_bits(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
 
@@ -149,11 +149,11 @@ void fbuf_clear_area(uint8_t x0, uint8_t x1, uint8_t y0, uint8_t y1){
     uint8_t lower_page    = y1/8;
         
     for(uint8_t x = x0; x <= x1; x++){
-        if(y1 < y0 + 8){    // less than 8 bits height => only need a single draw_upper_n command
-            fbuf_draw_upper_n(0, x, y0, (uint8_t)(y1-y0+1));
+        if(y1 < y0 + 8){    // less than 8 bits height => only need a single draw_high_bits command
+            fbuf_draw_high_bits(0, x, y0, (uint8_t)(y1-y0+1));
         } else {    // more than 8 bits => fuckit, overdraw
-            fbuf_draw_upper_n(0, x, y0, 8);
-            fbuf_draw_upper_n(0, x, (uint8_t)(y1 - 7), 8);
+            fbuf_draw_high_bits(0, x, y0, 8);
+            fbuf_draw_high_bits(0, x, (uint8_t)(y1 - 7), 8);
             for(uint8_t page = (uint8_t)(upper_page + 1); page < lower_page; page++){
                 fbuf_draw_byte(0, x, page);
             }
@@ -181,13 +181,13 @@ void fbuf_printf_P(const char* fmt, ...){
 void fbuf_draw_char(char c){
     if(c == '\n'  &&  '\n' < font_start_offset){    // special case for newline when it is not part of the font
         for(uint8_t x = cursor_x; x < DISP_WIDTH; x++){
-            fbuf_draw_upper_n(0, x, cursor_y, font_height);
+            fbuf_draw_high_bits(0, x, cursor_y, font_height);
         }
         cursor_y = (cursor_y + font_height + font_vert_spacing) % DISP_HEIGHT;
         cursor_x = 0;
     } else {
         for(uint8_t x = 0; x < font_width; x++){
-            fbuf_draw_upper_n(
+            fbuf_draw_high_bits(
                 pgm_read_byte( font_addr + (c-font_start_offset)*font_width + x ),
                 cursor_x + x,
                 cursor_y,
