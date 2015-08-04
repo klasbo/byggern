@@ -97,7 +97,7 @@ void fbuf_draw_lower_n(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
 
 
 void fbuf_draw_pixel(uint8_t b, uint8_t x, uint8_t y){
-    if(x >= DISP_WIDTH || y >= DISP_PAGES*8){ return; }
+    if(x >= DISP_WIDTH || y >= DISP_HEIGHT){ return; }
 
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
