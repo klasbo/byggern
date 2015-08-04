@@ -58,46 +58,22 @@ void fbuf_draw_byte(uint8_t b, uint8_t column, uint8_t page){
     frame[page][column] = b;
 }
 
-//TODO: rename!
+
 void fbuf_draw_high_bits(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
-    uint8_t page      = y/8;
-    uint8_t offset    = y%8;
-
-    uint8_t mask1 = ((uint8_t)(0xff >> (8 - offset))  |  (uint8_t)(0xff << (n + offset)));
-    uint8_t val1  = (uint8_t)(b << offset);
-
-    frame[page][x] = val1 ^ ((val1 ^ frame[page][x]) & mask1);
-
-    if(page + 1 < DISP_PAGES  &&  n + offset > 8){
-        uint8_t mask2 = (uint8_t)(0xff << (offset - (8-n)));
-        uint8_t val2  = (uint8_t)(b >> (8 - offset));
-
-        frame[page+1][x]  = val2 ^ ((val2 ^ frame[page+1][x]) & mask2);
+    for(uint8_t i = 0; i < n; i++){
+        fbuf_draw_pixel(b & (1 << i), x, y+i);
     }
 }
     
 void fbuf_draw_low_bits(uint8_t b, uint8_t x, uint8_t y, uint8_t n){
-    uint8_t page      = y/8;
-    uint8_t offset    = y%8;
-
-    uint8_t mask1 = ((uint8_t)(0xff >> (8 - offset))  |  (uint8_t)(0xff << (n + offset)));
-    uint8_t val1  = (offset > (8-n)) ?
-                        (uint8_t)(b << (offset - (8-n))) :
-                        (uint8_t)(b >> ((8-n) - offset)) ;
-
-    frame[page][x] = val1 ^ ((val1 ^ frame[page][x]) & mask1);
-
-    if(page + 1 < DISP_PAGES  &&  n + offset > 8){
-        uint8_t mask2 = (uint8_t)(0xff << (offset - (8-n)));
-        uint8_t val2  = (uint8_t)(b >> (n - offset));
-
-        frame[page+1][x]  = val2 ^ ((val2 ^ frame[page+1][x]) & mask2);
+    for(uint8_t i = 0; i < n; i++){
+        fbuf_draw_pixel(b & (1 << (i + (8-n))), x, y+i);
     }
 }
 
 
 void fbuf_draw_pixel(uint8_t b, uint8_t x, uint8_t y){
-    if(x >= DISP_WIDTH || y >= DISP_HEIGHT){ return; }
+    //if(x >= DISP_WIDTH || y >= DISP_HEIGHT){ return; }
 
     uint8_t page      = y/8;
     uint8_t offset    = y%8;
@@ -145,18 +121,9 @@ void fbuf_draw_rectangle(uint8_t x0, uint8_t x1, uint8_t y0, uint8_t y1){
 }
     
 void fbuf_clear_area(uint8_t x0, uint8_t x1, uint8_t y0, uint8_t y1){
-    uint8_t upper_page    = y0/8;
-    uint8_t lower_page    = y1/8;
-        
     for(uint8_t x = x0; x <= x1; x++){
-        if(y1 < y0 + 8){    // less than 8 bits height => only need a single draw_high_bits command
-            fbuf_draw_high_bits(0, x, y0, (uint8_t)(y1-y0+1));
-        } else {    // more than 8 bits => fuckit, overdraw
-            fbuf_draw_high_bits(0, x, y0, 8);
-            fbuf_draw_high_bits(0, x, (uint8_t)(y1 - 7), 8);
-            for(uint8_t page = (uint8_t)(upper_page + 1); page < lower_page; page++){
-                fbuf_draw_byte(0, x, page);
-            }
+        for(uint8_t y = y0; y <= y1; y++){
+            fbuf_draw_pixel(0, x, y);
         }
     }
 }
@@ -194,7 +161,7 @@ void fbuf_draw_char(char c){
                 font_height
             );
         }
-        cursor_x += font_width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
+        cursor_x += font_width + font_horiz_spacing;
     }
 }
 
