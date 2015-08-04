@@ -1,16 +1,18 @@
-
 #pragma once
 
+#include "fonts/fontdescr.h"
 
-#define ROWS                    64
-#define COLUMNS                 128
-#define PAGES                   8
-#define PAGE_WIDTH              (ROWS/8)
-#define MAX_PAGE                (PAGES - 1)
-#define MAX_COL                 (COLUMNS - 1)
+/// -- DISPLAY SIZE -- ///
+
+#define DISP_HEIGHT             64
+#define DISP_WIDTH              128
+#define DISP_PAGES              8
 
 
 
+
+
+/// -- OLED CONFIG COMMANDS -- ///
 
 #define OLED_MEMORY_ADDRESSING_MODE         0x20
 #define ADDRESSING_MODE_HORIZONTAL          0x00
@@ -56,14 +58,7 @@
 #define VCOMH_DESELECT_0_83                 0x30
 
 #define OLED_PAGE_START_ADDRESS             0xB0
-#define PAGE0                               0x00
-#define PAGE1                               0x01
-#define PAGE2                               0x02
-#define PAGEE                               0x03
-#define PAGE4                               0x04
-#define PAGE5                               0x05
-#define PAGE6                               0x06
-#define PAGE7                               0x07
+//  Valid values: 0-7.
 
 #define OLED_DISPLAY_OFFSET                 0xD3
 //  Valid values: 0-63.     Reset: 0
@@ -89,22 +84,26 @@
 #define OLED_COM_SCAN_DIR_NORMAL            0xC0
 #define OLED_COM_SCAN_DIR_REMAPPED          0xC8
 
-void OLED_init(void);
 
-void OLED_reset(void);
 
-void OLED_go_to_line(int line);
-void OLED_go_to_column(int column);
 
-void OLED_printf(char* fmt, ...);
-void OLED_printf_P(const char* fmt, ...);
+void oled_init(void);
 
-void OLED_clear_line(int line);
+void oled_write_cmd(char c);
+void oled_write_data(char d);
 
-void OLED_write_cmd(char c);
+void oled_reset(void);
+void oled_clear_line(int line);
 
-void OLED_write_char(char c);
+void oled_set_font(FontDescr fd);
 
-void OLED_set_font(void* addr, uint8_t width, uint8_t start_offset);
+void oled_go_to_line(int line);
+void oled_go_to_column(int column);
+
+void oled_write_char(char c);
+void oled_printf(char* fmt, ...);
+void oled_printf_P(const char* fmt, ...);
+
+
 
 

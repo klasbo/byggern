@@ -1,7 +1,7 @@
 
 #include "font8x8.h"
 
-unsigned const char PROGMEM font8x8[95][8] = {
+unsigned const char PROGMEM font8x8_data[95][8] = {
     {0b00000000,0b00000000,0b00000000,0b00000000,0b00000000,0b00000000,0b00000000,0b00000000}, //
     {0b00000000,0b00000110,0b01011111,0b01011111,0b00000110,0b00000000,0b00000000,0b00000000}, // !
     {0b00000000,0b00000111,0b00000111,0b00000000,0b00000111,0b00000111,0b00000000,0b00000000}, // "
@@ -99,3 +99,11 @@ unsigned const char PROGMEM font8x8[95][8] = {
     {0b00000010,0b00000011,0b00000001,0b00000011,0b00000010,0b00000011,0b00000001,0b00000000}, // ~
 };
 
+FontDescr font8x8(){
+    return (FontDescr){
+        .addr           = (char*)font8x8_data,
+        .height         = 8,
+        .width          = 8,
+        .start_offset   = 32,
+    };
+}

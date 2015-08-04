@@ -1,147 +1,154 @@
 
+#include "../../config.h"
+
 #include <avr/pgmspace.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 #include "oled.h"
-#include "fonts/font8x8.h"
-#include "../memory_layout.h"
+#include "fonts/fontdescr.h"
 
-#define NUM_CHARS_PER_LINE      (COLUMNS / FONT8x8_WIDTH)
+static int line_number      = 0;
+static int column_number    = 0;
+static FILE oled_stdout = FDEV_SETUP_STREAM(oled_write_char, NULL, _FDEV_SETUP_WRITE);
 
-static int line_number;
-static int column_number;
-static FILE OLED_stdout = FDEV_SETUP_STREAM(OLED_write_char, NULL, _FDEV_SETUP_WRITE);
+static int              font_width;
+static char             font_start_offset;
+static unsigned char*   font_addr;
 
-static int              font_width          = FONT8x8_WIDTH;
-static char             font_start_offset   = FONT8x8_START_OFFSET;
-static unsigned char*   font                = (unsigned char*)font8x8;
+static volatile char*   ext_oled_cmd    = (char*)(0x8000);
+static volatile char*   ext_oled_data   = (char*)(0x8200);
 
 
-void __attribute__ ((constructor)) OLED_init(void){
+void __attribute__ ((constructor)) oled_init(void){
     extern void memory_layout_init(void);
     memory_layout_init();
+
+    oled_write_cmd(OLED_POWER_OFF);
+
+    oled_write_cmd(OLED_SEGMENT_REMAP_END);
+
+    oled_write_cmd(OLED_COM_PINS);
+    oled_write_cmd(OLED_COM_PIN_ALTERNATIVE);
+
+    oled_write_cmd(OLED_COM_SCAN_DIR_REMAPPED);
+
+    oled_write_cmd(OLED_MUX_RATIO);
+    oled_write_cmd(0x3f);                           // reset
+
+    oled_write_cmd(OLED_DISPLAY_CLOCK);
+    oled_write_cmd(0x80);                           // reset
+
+    oled_write_cmd(OLED_CONTRAST);
+    oled_write_cmd(0xf0);                           // configurable
+
+    oled_write_cmd(OLED_PRE_CHARGE_PERIOD);
+    oled_write_cmd(0x21);
+
+    oled_write_cmd(OLED_MEMORY_ADDRESSING_MODE);
+    oled_write_cmd(ADDRESSING_MODE_PAGE);
+
+    oled_write_cmd(OLED_VCOMH_DESELECT_LEVEL);
+    oled_write_cmd(VCOMH_DESELECT_0_83);
+
+    oled_write_cmd(OLED_SELECT_IREF);
+    oled_write_cmd(IREF_EXTERNAL);
+
+    oled_write_cmd(OLED_DISPLAY_ON__FOLLOW_RAM);
+
+    oled_write_cmd(OLED_DISPLAY_NORMAL);
+
+    oled_write_cmd(OLED_POWER_ON);
     
-    OLED_write_cmd(OLED_POWER_OFF);
 
-    OLED_write_cmd(OLED_SEGMENT_REMAP_END);
-
-    OLED_write_cmd(OLED_COM_PINS);
-    OLED_write_cmd(OLED_COM_PIN_ALTERNATIVE);
-
-    OLED_write_cmd(OLED_COM_SCAN_DIR_REMAPPED);
-
-    OLED_write_cmd(OLED_MUX_RATIO);
-    OLED_write_cmd(0x3f);                           // reset
-
-    OLED_write_cmd(OLED_DISPLAY_CLOCK);
-    OLED_write_cmd(0x80);                           // reset
-
-    OLED_write_cmd(OLED_CONTRAST);
-    OLED_write_cmd(0x50);                           // configurable
-
-    OLED_write_cmd(OLED_PRE_CHARGE_PERIOD);
-    OLED_write_cmd(0x21);
-
-    OLED_write_cmd(OLED_MEMORY_ADDRESSING_MODE);
-    OLED_write_cmd(ADDRESSING_MODE_PAGE);
-
-    OLED_write_cmd(OLED_VCOMH_DESELECT_LEVEL);
-    OLED_write_cmd(VCOMH_DESELECT_0_83);
-
-    OLED_write_cmd(OLED_SELECT_IREF);
-    OLED_write_cmd(IREF_EXTERNAL);
-
-    OLED_write_cmd(OLED_DISPLAY_ON__FOLLOW_RAM);
-
-    OLED_write_cmd(OLED_DISPLAY_NORMAL);
-
-    OLED_write_cmd(OLED_POWER_ON);
-
-
-    OLED_reset();
-}
-
-void OLED_reset(void){
-    OLED_go_to_column(0);
-    for(int i = 0; i < PAGES; i++){
-        OLED_clear_line(i);
-    }
-    OLED_go_to_line(0);
+    oled_reset();
 }
 
 
-
-void OLED_go_to_line(int line){
-    line_number = line;
-    OLED_write_cmd(OLED_PAGE_START_ADDRESS + line);
-
-}
-
-void OLED_go_to_column(int column){
-    if(column < NUM_CHARS_PER_LINE){
-        column_number = column;
-        OLED_write_cmd(OLED_COLUMN_ADDRESS);
-        OLED_write_cmd(column*font_width);
-        OLED_write_cmd(COLUMNS-1);
-    } else {
-        // This is stupid. Asking to write outside the screen should trigger... something.
-        OLED_write_cmd(OLED_COLUMN_ADDRESS);
-        OLED_write_cmd(COLUMNS-1);
-        OLED_write_cmd(COLUMNS-1);
-    }
-}
-
-
-
-void OLED_printf(char* fmt, ...){
-    va_list v;
-    va_start(v, fmt);
-    vfprintf(&OLED_stdout, fmt, v);
-    va_end(v);
-}
-
-void OLED_printf_P(const char* fmt, ...){
-    va_list v;
-    va_start(v, fmt);
-    vfprintf_P(&OLED_stdout, fmt, v);
-    va_end(v);
-}
-
-
-void OLED_clear_line(int line){
-    OLED_go_to_line(line);
-    for(int i = 0; i < COLUMNS; i++){
-        *ext_oled_data = 0;
-    }
-}
-
-
-void OLED_write_cmd(char c){
+void oled_write_cmd(char c){
     *ext_oled_cmd = c;
 }
 
+void oled_write_data(char d){
+    *ext_oled_data = d;
+}
 
-void OLED_write_char(char c){
+
+
+void oled_reset(void){
+    oled_go_to_column(0);
+    for(int i = 0; i < DISP_PAGES; i++){
+        oled_clear_line(i);
+    }
+    oled_go_to_line(0);
+}
+
+void oled_clear_line(int line){
+    oled_go_to_line(line);
+    for(int i = 0; i < DISP_WIDTH; i++){
+        oled_write_data(0x74);
+    }
+}
+
+
+
+void oled_set_font(FontDescr fd){
+    font_addr           = fd.addr;
+    font_width          = fd.width;
+    font_start_offset   = fd.start_offset;
+}
+
+
+
+void oled_go_to_line(int line){
+    line_number = line;
+    oled_write_cmd(OLED_PAGE_START_ADDRESS + line);
+}
+
+void oled_go_to_column(int column){
+    if(column < (DISP_WIDTH/font_width)){
+        column_number = column;
+        oled_write_cmd(OLED_COLUMN_ADDRESS);
+        oled_write_cmd(column*font_width);
+        oled_write_cmd(DISP_WIDTH-1);
+    } else {
+        // This is stupid. Asking to write outside the screen should trigger... something.
+        oled_write_cmd(OLED_COLUMN_ADDRESS);
+        oled_write_cmd(DISP_WIDTH-1);
+        oled_write_cmd(DISP_WIDTH-1);
+    }
+}
+
+
+
+void oled_write_char(char c){
     if(c == '\n'){
-        for(int i = column_number*font_width; i < COLUMNS; i++){
-            *ext_oled_data = 0;
+        for(int i = column_number*font_width; i < DISP_WIDTH; i++){
+            oled_write_data(0);
         }
-        line_number = (line_number + 1) % PAGES;
-        OLED_go_to_line(line_number);
-        OLED_go_to_column(0);
+        line_number = (line_number + 1) % DISP_PAGES;
+        oled_go_to_line(line_number);
+        oled_go_to_column(0);
     } else {
         for (int i = 0; i < font_width; i++){
-            *ext_oled_data = pgm_read_byte( font + (c-font_start_offset)*font_width + i );
+            oled_write_data(pgm_read_byte( font_addr + (c-font_start_offset)*font_width + i ));
         }
         column_number++;
     }
 }
 
-void OLED_set_font(void* addr, uint8_t width, uint8_t start_offset){
-    font                = (unsigned char*)addr;
-    font_width          = width;
-    font_start_offset   = start_offset;
+void oled_printf(char* fmt, ...){
+    va_list v;
+    va_start(v, fmt);
+    vfprintf(&oled_stdout, fmt, v);
+    va_end(v);
+}
+
+void oled_printf_P(const char* fmt, ...){
+    va_list v;
+    va_start(v, fmt);
+    vfprintf_P(&oled_stdout, fmt, v);
+    va_end(v);
 }
 
 

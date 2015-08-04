@@ -63,18 +63,18 @@ void deleteUserProfile(uint8_t user){
 
 
 void renderUsernamesBackground(char* title){
-    frame_buffer_clear();
-    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    frame_buffer_printf("%s\n", title);
+    fbuf_clear();
+    fbuf_set_font(font8x8());
+    fbuf_printf("%s\n", title);
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         if(i == getCurrentUser()){
-            frame_buffer_printf("-");
+            fbuf_printf("-");
         }
-        frame_buffer_set_cursor(2, i+1);
-        frame_buffer_printf("%s\n", getUserProfile(i).username);
+        fbuf_set_cursor(2, i+1);
+        fbuf_printf("%s\n", getUserProfile(i).username);
     }
-    frame_buffer_printf("[Quit]   [Sel]");
-    frame_buffer_render();
+    fbuf_printf("[Quit]   [Sel]");
+    fbuf_render();
 }
 
 
@@ -93,15 +93,15 @@ void settingsIterator(
     uint8_t SLIRightButtonReleased = 0;
     
     while(1){
-        frame_buffer_set_cursor(1, selected+1);
-        frame_buffer_printf(">");
-        frame_buffer_render();
+        fbuf_set_cursor(1, selected+1);
+        fbuf_printf(">");
+        fbuf_render();
 
         joyDirnPrev = joyDirn;
         joyDirn = JOY_get_direction();
         if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
-            frame_buffer_set_cursor(1, selected+1);
-            frame_buffer_printf(" ");
+            fbuf_set_cursor(1, selected+1);
+            fbuf_printf(" ");
             switch(joyDirn){
                 case UP:
                 selected = selected > 0 ?           selected - 1 : selected;
@@ -146,9 +146,9 @@ void user_add(void){
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
-                frame_buffer_set_cursor(0, 7);
-                frame_buffer_printf("[Back]    [Ok]");
-                frame_buffer_render();
+                fbuf_set_cursor(0, 7);
+                fbuf_printf("[Back]    [Ok]");
+                fbuf_render();
                 UserProfile newUser = getUserProfile(selected);
                 // edit newUser.username
                 uint8_t     SLIRightButtonReleased  = 0;
@@ -158,9 +158,9 @@ void user_add(void){
                 JOY_dir_t   joyDirn                 = NEUTRAL;
                 while(1){
                     newUser.username[pos] = c;
-                    frame_buffer_set_cursor(2, selected+1);
-                    frame_buffer_printf("%-8s", newUser.username);
-                    frame_buffer_render();
+                    fbuf_set_cursor(2, selected+1);
+                    fbuf_printf("%-8s", newUser.username);
+                    fbuf_render();
 
                     joyDirnPrev = joyDirn;
                     joyDirn = JOY_get_direction();
@@ -227,18 +227,18 @@ void user_delete(void){
 
 
 void user_highscores_pong(void){
-    frame_buffer_clear();
-    frame_buffer_printf("Highscores");
+    fbuf_clear();
+    fbuf_printf("Highscores");
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         UserProfile p = getUserProfile(i);
         if(p.username[0]){
-            frame_buffer_set_cursor(0, i+1);
-            frame_buffer_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
+            fbuf_set_cursor(0, i+1);
+            fbuf_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
         }
     }
-    frame_buffer_set_cursor(0, 7);
-    frame_buffer_printf("[Quit]");
-    frame_buffer_render();
+    fbuf_set_cursor(0, 7);
+    fbuf_printf("[Quit]");
+    fbuf_render();
     while(1){
         if(SLI_get_left_button()){
             return;
@@ -247,18 +247,18 @@ void user_highscores_pong(void){
 }
 
 void user_highscores_2048(void){
-    frame_buffer_clear();
-    frame_buffer_printf("Highscores");
+    fbuf_clear();
+    fbuf_printf("Highscores");
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         UserProfile p = getUserProfile(i);
         if(p.username[0]){
-            frame_buffer_set_cursor(0, i+1);
-            frame_buffer_printf("%-8s: %5d\n", p.username, p.game_2048.bestScore);
+            fbuf_set_cursor(0, i+1);
+            fbuf_printf("%-8s: %5lu\n", p.username, p.game_2048.bestScore);
         }
     }
-    frame_buffer_set_cursor(0, 7);
-    frame_buffer_printf("[Quit]");
-    frame_buffer_render();
+    fbuf_set_cursor(0, 7);
+    fbuf_printf("[Quit]");
+    fbuf_render();
     while(1){
         if(SLI_get_left_button()){
             return;
@@ -271,10 +271,10 @@ void user_highscores_2048(void){
 void controls_motor(void){
     settingsIterator(
         lambda(void, (void){
-            frame_buffer_clear();
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("Motor\n");
-            frame_buffer_printf(
+            fbuf_clear();
+            fbuf_set_font(font8x8());
+            fbuf_printf("Motor\n");
+            fbuf_printf(
                 "  Joy X\n"
                 "  Joy Y\n"
                 "  Sli R\n"
@@ -283,12 +283,12 @@ void controls_motor(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.motorInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl);
-                frame_buffer_printf("-");
+                fbuf_set_cursor(0, currentControl);
+                fbuf_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7);
-            frame_buffer_printf("[Quit]   [Sel]");
+            fbuf_set_cursor(0, 7);
+            fbuf_printf("[Quit]   [Sel]");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -307,10 +307,10 @@ void controls_motor(void){
 void controls_motor_sensitivity(void){
     settingsIterator(
         lambda(void, (void){
-            frame_buffer_clear();
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("Sensitivity\n");
-            frame_buffer_printf(
+            fbuf_clear();
+            fbuf_set_font(font8x8());
+            fbuf_printf("Sensitivity\n");
+            fbuf_printf(
               "  1\n"
               "  2\n"
               "  3\n"
@@ -320,12 +320,12 @@ void controls_motor_sensitivity(void){
 
             uint8_t currentValue = getCurrentUserProfile().game_pong.motorSensitivity;
             if(currentValue != 0){
-                frame_buffer_set_cursor(0, currentValue);
-                frame_buffer_printf("-");
+                fbuf_set_cursor(0, currentValue);
+                fbuf_printf("-");
             }
 
-            frame_buffer_set_cursor(0, 7);
-            frame_buffer_printf("[Quit]   [Sel]");
+            fbuf_set_cursor(0, 7);
+            fbuf_printf("[Quit]   [Sel]");
         }),
         5,
         lambda(void, (uint8_t val){
@@ -339,10 +339,10 @@ void controls_motor_sensitivity(void){
 void controls_servo(void){
     settingsIterator(
         lambda(void, (void){
-            frame_buffer_clear();
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("Servo\n");
-            frame_buffer_printf(
+            fbuf_clear();
+            fbuf_set_font(font8x8());
+            fbuf_printf("Servo\n");
+            fbuf_printf(
                 "  Joy X\n"
                 "  Joy Y\n"
                 "  Sli R\n"
@@ -351,12 +351,12 @@ void controls_servo(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.servoInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl);
-                frame_buffer_printf("-");
+                fbuf_set_cursor(0, currentControl);
+                fbuf_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7);
-            frame_buffer_printf("[Quit]   [Sel]");
+            fbuf_set_cursor(0, 7);
+            fbuf_printf("[Quit]   [Sel]");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -375,10 +375,10 @@ void controls_servo(void){
 void controls_solenoid(void){
     settingsIterator(
         lambda(void, (void){
-            frame_buffer_clear();
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("Solenoid\n");
-            frame_buffer_printf(
+            fbuf_clear();
+            fbuf_set_font(font8x8());
+            fbuf_printf("Solenoid\n");
+            fbuf_printf(
                 "  Joy Btn\n"
                 "  Joy Up\n"
                 "  Sli Btn R"
@@ -386,12 +386,12 @@ void controls_solenoid(void){
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.solenoidInputType;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl);
-                frame_buffer_printf("-");
+                fbuf_set_cursor(0, currentControl);
+                fbuf_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7);
-            frame_buffer_printf("[Quit]   [Sel]");
+            fbuf_set_cursor(0, 7);
+            fbuf_printf("[Quit]   [Sel]");
         }),
         3,
         lambda(void, (uint8_t selected){
@@ -409,22 +409,22 @@ void controls_solenoid(void){
 void controls_bluetooth(void){
     settingsIterator(
         lambda(void, (void){
-            frame_buffer_clear();
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_printf("Bluetooth\n");
-            frame_buffer_printf(
+            fbuf_clear();
+            fbuf_set_font(font8x8());
+            fbuf_printf("Bluetooth\n");
+            fbuf_printf(
             "  Off\n"
             "  On\n"
             );
             
             uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
             if(currentControl != 0){
-                frame_buffer_set_cursor(0, currentControl);
-                frame_buffer_printf("-");
+                fbuf_set_cursor(0, currentControl);
+                fbuf_printf("-");
             }
             
-            frame_buffer_set_cursor(0, 7);
-            frame_buffer_printf("[Quit]   [Sel]");
+            fbuf_set_cursor(0, 7);
+            fbuf_printf("[Quit]   [Sel]");
         }),
         2,
         lambda(void, (uint8_t val){

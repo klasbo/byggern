@@ -52,29 +52,29 @@ int main(void){
         
         if_assignment_modifies(prev_menu, menu){
             // Set the font each time, because a program may have modified it.
-            frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-            frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_clear();
+            fbuf_set_font(font8x8());
+            fbuf_set_font_spacing(-1, 0);
+            fbuf_clear();
 
             // Parent name
-            frame_buffer_printf("%s\n", menu_close(menu)->item.name);
+            fbuf_printf("%s\n", menu_close(menu)->item.name);
 
             // Submenu names
             foreach_submenu(menu_close(menu), lambda(void, (menunode_t* m, __attribute__((unused)) int8_t idx){
-                frame_buffer_printf("  %s\n", m->item.name);
+                fbuf_printf("  %s\n", m->item.name);
             }));
             
             // Indicate which item is selected
-            frame_buffer_set_cursor(0, menu_index(menu)+1);
-            frame_buffer_printf(">");
+            fbuf_set_cursor(0, menu_index(menu)+1);
+            fbuf_printf(">");
             
             // Indicate runnable program
             if(menu->item.fun){
-                frame_buffer_set_cursor(10, 7);
-                frame_buffer_printf("[Open]");
+                fbuf_set_cursor(10, 7);
+                fbuf_printf("[Open]");
             }
 
-            frame_buffer_render();
+            fbuf_render();
         }
 
         if(SLI_get_right_button() && menu->item.fun){

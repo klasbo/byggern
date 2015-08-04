@@ -159,15 +159,15 @@ void game_pong(void){
 
 
     void renderBackground(void){
-        frame_buffer_clear();
-        frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-        frame_buffer_printf(
+        fbuf_clear();
+        fbuf_set_font(font8x8());
+        fbuf_printf(
             "PONG\n"
             " You vs Gravity"
         );
-        frame_buffer_set_cursor(0, 7);
-        frame_buffer_printf("[Quit]");
-        frame_buffer_render();
+        fbuf_set_cursor(0, 7);
+        fbuf_printf("[Quit]");
+        fbuf_render();
     }
             
             
@@ -184,25 +184,25 @@ void game_pong(void){
         
         if(prevLifeTime != lifeTime){
             prevLifeTime = lifeTime;
-            frame_buffer_set_cursor_to_pixel(0, 28);
-            frame_buffer_printf("%5d Seconds", lifeTime);
-            frame_buffer_render();
+            fbuf_set_cursor_to_pixel(0, 28);
+            fbuf_printf("%5d Seconds", lifeTime);
+            fbuf_render();
         }        
         
         
         recvMsg = CAN_recv();
         switch(recvMsg.ID){
             case CANID_GameOver:
-                frame_buffer_set_cursor_to_pixel(20, 20);
-                frame_buffer_printf(
+                fbuf_set_cursor_to_pixel(20, 20);
+                fbuf_printf(
                     "Game over!\n"
                 );
-                frame_buffer_set_cursor(0, 6);
-                frame_buffer_printf(
+                fbuf_set_cursor(0, 6);
+                fbuf_printf(
                     "Play again?\n"
                     "[No]       [Yes]"
                 );
-                frame_buffer_render();
+                fbuf_render();
                 
                 if(lifeTime > p.game_pong.bestScore){
                     p.game_pong.bestScore = lifeTime;

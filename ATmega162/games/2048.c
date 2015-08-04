@@ -514,78 +514,78 @@ Actuator* new_Actuator(void){
 #define SLIDER_R_TEXT_CURSOR    113, 56
 
 void drawBackground(void){
-    frame_buffer_clear();
+    fbuf_clear();
     for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
         for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
-            frame_buffer_draw_rectangle(0, x, 0, y);
+            fbuf_draw_rectangle(0, x, 0, y);
         }
     }
         
-    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    frame_buffer_set_font_spacing(-2, 0);
+    fbuf_set_font(font8x8());
+    fbuf_set_font_spacing(-2, 0);
 
-    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 0);
-    frame_buffer_printf("Score");
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 0);
+    fbuf_printf("Score");
 
-    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 20);
-    frame_buffer_printf("Best");
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 20);
+    fbuf_printf("Best");
         
-    frame_buffer_draw_rectangle(SLIDER_L_BBOX);
-    frame_buffer_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
-    frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
-    frame_buffer_draw_char(17);     // Quit
+    fbuf_draw_rectangle(SLIDER_L_BBOX);
+    fbuf_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
+    fbuf_set_font(font_2048());
+    fbuf_draw_char(17);     // Quit
 
-    frame_buffer_render();
+    fbuf_render();
 }
 
 void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
     for(int x = 0; x < SIZE; x++){
         for(int y = 0; y < SIZE; y++){
-            frame_buffer_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
+            fbuf_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
             if(g->tiles[x][y]){
-                frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
-                frame_buffer_set_cursor_to_pixel(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
-                frame_buffer_draw_char(g->tiles[x][y]->value);
+                fbuf_set_font(font_2048());
+                fbuf_set_cursor_to_pixel(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
+                fbuf_draw_char(g->tiles[x][y]->value);
             }
         }
     }
 
-    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    frame_buffer_set_font_spacing(-2, 0);
+    fbuf_set_font(font8x8());
+    fbuf_set_font_spacing(-2, 0);
 
-    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 8);
-    frame_buffer_printf("%6ld", am.score);
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 8);
+    fbuf_printf("%6ld", am.score);
 
-    frame_buffer_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 28);
-    frame_buffer_printf("%6ld", am.bestScore);
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 28);
+    fbuf_printf("%6ld", am.bestScore);
 
     if(am.terminated){
         if(am.over){
-            frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor_to_pixel(2, 25);
-            frame_buffer_printf("Game over!");
+            fbuf_set_font_spacing(0, 0);
+            fbuf_set_cursor_to_pixel(2, 25);
+            fbuf_printf("Game over!");
             
-            frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor_to_pixel(11, 46);
-            frame_buffer_printf("New game?");
+            fbuf_set_font_spacing(-1, 0);
+            fbuf_set_cursor_to_pixel(11, 46);
+            fbuf_printf("New game?");
         } else if(am.won){
-            frame_buffer_set_font_spacing(0, 0);
-            frame_buffer_set_cursor_to_pixel(9, 25);
-            frame_buffer_printf("You win!");
+            fbuf_set_font_spacing(0, 0);
+            fbuf_set_cursor_to_pixel(9, 25);
+            fbuf_printf("You win!");
             
-            frame_buffer_set_font_spacing(-1, 0);
-            frame_buffer_set_cursor_to_pixel(11, 46);
-            frame_buffer_printf("Keep Playing?");            
+            fbuf_set_font_spacing(-1, 0);
+            fbuf_set_cursor_to_pixel(11, 46);
+            fbuf_printf("Keep Playing?");            
         }
-        frame_buffer_set_font(font_2048, font_2048_WIDTH, font_2048_HEIGHT, font_2048_START_OFFSET);
-        frame_buffer_draw_rectangle(SLIDER_L_BBOX);
-        frame_buffer_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
-        frame_buffer_draw_char(15);     // No
-        frame_buffer_draw_rectangle(SLIDER_R_BBOX);
-        frame_buffer_set_cursor_to_pixel(SLIDER_R_TEXT_CURSOR);
-        frame_buffer_draw_char(16);     // Yes
+        fbuf_set_font(font_2048());
+        fbuf_draw_rectangle(SLIDER_L_BBOX);
+        fbuf_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
+        fbuf_draw_char(15);     // No
+        fbuf_draw_rectangle(SLIDER_R_BBOX);
+        fbuf_set_cursor_to_pixel(SLIDER_R_TEXT_CURSOR);
+        fbuf_draw_char(16);     // Yes
     }
-    frame_buffer_render();
+    fbuf_render();
 }
 
 
@@ -600,8 +600,8 @@ void game_2048(){
     JOY_dir_t   joyDirnPrev     = joyDirn;
     uint8_t     quit            = 0;
 
-    frame_buffer_set_font(font8x8, FONT8x8_WIDTH, FONT8x8_HEIGHT, FONT8x8_START_OFFSET);
-    frame_buffer_set_font_spacing(-2, 0);
+    fbuf_set_font(font8x8());
+    fbuf_set_font_spacing(-2, 0);
     
     drawBackground();   // for some reason the text isn't drawn the first time. (WAT)
     actuate(gm);
@@ -623,12 +623,12 @@ void game_2048(){
         if(isGameTerminated(gm)){
             if(gm->over){
                 if(SLI_get_left_button()){  // quit
-                    frame_buffer_clear();
-                    frame_buffer_render();
+                    fbuf_clear();
+                    fbuf_render();
                     quit = 1;
                 }
                 if(SLI_get_right_button()){ // restart
-                    frame_buffer_clear();
+                    fbuf_clear();
                     writeCurrentUserProfile(gm->userProfile);
                     delete_GameManager(&gm);
                     gm = new_GameManager();
@@ -637,21 +637,21 @@ void game_2048(){
                 }
             } else if(gm->won){
                 if(SLI_get_left_button()){  // quit
-                    frame_buffer_clear();
-                    frame_buffer_render();
+                    fbuf_clear();
+                    fbuf_render();
                     quit = 1;
                 }
                 if(SLI_get_right_button()){ // keep playing
                     gm->keepPlaying = 1;
-                    frame_buffer_clear();
+                    fbuf_clear();
                     drawBackground();
                     actuate(gm);
                 }
             }
         } else {
             if(SLI_get_left_button()){  // quit
-                frame_buffer_clear();
-                frame_buffer_render();
+                fbuf_clear();
+                fbuf_render();
                 quit = 1;
             }
         }

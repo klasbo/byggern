@@ -5,4 +5,4 @@
 
 #include "fontdescr.h"
 
-FontDescr font_2048(void);
+FontDescr font4x6(void);
