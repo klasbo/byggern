@@ -1,15 +1,8 @@
 
 #pragma once
 
-// Start addresses for:
-
-//   SRAM
-extern volatile char* ext_ram;
-//   ADC
-extern volatile char* ext_adc;
-//   OLED Command
-extern volatile char* ext_oled_cmd;
-//   OLED Data
-extern volatile char* ext_oled_data;
-
-#define ext_ram_size 0x800
+#define ext_ram         ((volatile char*) 0x1800)
+#define ext_ram_size    0x800
+#define ext_adc         ((volatile char*) 0x1400)
+#define ext_oled_cmd    ((volatile char*) 0x1000)
+#define ext_oled_data   ((volatile char*) 0x1200)

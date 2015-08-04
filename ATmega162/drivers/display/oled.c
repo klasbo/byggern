@@ -16,9 +16,6 @@ static int              font_width;
 static char             font_start_offset;
 static unsigned char*   font_addr;
 
-static volatile char*   ext_oled_cmd    = (char*)(0x8000);
-static volatile char*   ext_oled_data   = (char*)(0x8200);
-
 
 void __attribute__ ((constructor)) oled_init(void){
     extern void memory_layout_init(void);
@@ -62,15 +59,6 @@ void __attribute__ ((constructor)) oled_init(void){
     
 
     oled_reset();
-}
-
-
-void oled_write_cmd(char c){
-    *ext_oled_cmd = c;
-}
-
-void oled_write_data(char d){
-    *ext_oled_data = d;
 }
 
 

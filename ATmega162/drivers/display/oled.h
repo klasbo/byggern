@@ -1,12 +1,13 @@
 #pragma once
 
 #include "fonts/fontdescr.h"
+#include "../memory_layout.h"
 
 /// -- DISPLAY SIZE -- ///
 
 #define DISP_HEIGHT             64
 #define DISP_WIDTH              128
-#define DISP_PAGES              8
+#define DISP_PAGES              (DISP_HEIGHT/8)
 
 
 
@@ -89,8 +90,12 @@
 
 void oled_init(void);
 
-void oled_write_cmd(char c);
-void oled_write_data(char d);
+static inline void oled_write_cmd(char c){
+    *ext_oled_cmd = c;
+}
+static inline void oled_write_data(char d){
+    *ext_oled_data = d;
+}
 
 void oled_reset(void);
 void oled_clear_line(int line);
