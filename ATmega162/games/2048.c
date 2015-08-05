@@ -533,7 +533,7 @@ void drawBackground(void){
     fbuf_draw_rectangle(SLIDER_L_BBOX);
     fbuf_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
     fbuf_set_font(font_2048());
-    fbuf_draw_char(17);     // Quit
+    fbuf_draw_char(FONT2048_CHARNUM_QUIT);
 
     fbuf_render();
 }
@@ -580,10 +580,10 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
         fbuf_set_font(font_2048());
         fbuf_draw_rectangle(SLIDER_L_BBOX);
         fbuf_set_cursor_to_pixel(SLIDER_L_TEXT_CURSOR);
-        fbuf_draw_char(15);     // No
+        fbuf_draw_char(FONT2048_CHARNUM_NO);
         fbuf_draw_rectangle(SLIDER_R_BBOX);
         fbuf_set_cursor_to_pixel(SLIDER_R_TEXT_CURSOR);
-        fbuf_draw_char(16);     // Yes
+        fbuf_draw_char(FONT2048_CHARNUM_YES);
     }
     fbuf_render();
 }
