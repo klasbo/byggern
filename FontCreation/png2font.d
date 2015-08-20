@@ -31,7 +31,7 @@ void main(string[] args){
 "
 #include \"" ~ folder.baseName ~ ".h\"" ~ "
 
-unsigned const char PROGMEM " ~ folder.baseName ~ "[" ~ files.length.to!string ~ "][" ~ firstImage.w.to!string ~ "] = {
+unsigned const char PROGMEM " ~ folder.baseName ~ "_data[" ~ files.length.to!string ~ "][" ~ firstImage.w.to!string ~ "] = {
 "
 ;
 
@@ -39,11 +39,11 @@ unsigned const char PROGMEM " ~ folder.baseName ~ "[" ~ files.length.to!string ~
         auto im = file.read_image;
         assert(firstImage.w == im.w  &&  firstImage.h == im.h  &&  firstImage.pixels.length == im.pixels.length,
             "Images must be the same size and the same format");
-
+            
         cfile ~= "    " ~
         im.pixels
         .stride(im.c)
-        .chunks(im.w)
+        .chunks(im.w.to!size_t)
         .array
         .transposed
         .map!(col => col
@@ -71,6 +71,18 @@ unsigned const char PROGMEM " ~ folder.baseName ~ "[" ~ files.length.to!string ~
         cfile ~= "\n";
     }
     cfile ~= "};\n";
+    
+    cfile ~=
+"
+FontDescr " ~ folder.baseName ~ "(){
+    return (FontDescr){
+        .addr           = (char*)" ~ folder.baseName ~ "_data,
+        .height         = " ~ firstImage.h.to!string ~ ",
+        .width          = " ~ firstImage.w.to!string ~ ",
+        .start_offset   = " ~ fontOffset ~ ",
+    };
+}
+";
 
     std.file.write(folder ~ ".c", cfile);
     std.file.write(folder ~ ".h",
@@ -79,11 +91,9 @@ unsigned const char PROGMEM " ~ folder.baseName ~ "[" ~ files.length.to!string ~
 
 #include <avr/pgmspace.h>
 
-#define " ~ folder.baseName ~ "_HEIGHT           " ~ firstImage.h.to!string ~ "
-#define " ~ folder.baseName ~ "_WIDTH            " ~ firstImage.w.to!string ~ "
-#define " ~ folder.baseName ~ "_START_OFFSET     " ~ fontOffset ~ "
+#include \"fontdescr.h\"
 
-extern unsigned const char PROGMEM " ~ folder.baseName ~ "[" ~ files.length.to!string ~ "][" ~ firstImage.w.to!string ~ "];
+FontDescr " ~ folder.baseName ~ "(void);
 "
 );
 
