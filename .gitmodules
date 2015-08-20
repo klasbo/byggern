@@ -1,0 +1,3 @@
+[submodule "FontCreation/imageformats"]
+	path = FontCreation/imageformats
+	url = https://github.com/lgvz/imageformats
