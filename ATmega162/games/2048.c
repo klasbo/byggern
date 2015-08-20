@@ -15,11 +15,6 @@
 
 #define SIZE            4
 #define NUM_START_TILES 2
-#define GRID_SIZE_X     16
-#define GRID_SIZE_Y     15
-
-uint8_t traversal_asc[SIZE] = {0, 1, 2, 3};
-uint8_t traversal_dsc[SIZE] = {3, 2, 1, 0};
 
 #define TILE_2048       16  // The tile value needed to win (2048 by default)
 
@@ -27,8 +22,6 @@ typedef struct Position         Position;
 typedef struct FarthestPosition FarthestPosition;
 typedef struct Tile             Tile;
 typedef struct Grid             Grid;
-typedef struct Actuator         Actuator;
-typedef struct ActuatorMetadata ActuatorMetadata;
 #define GameManager_scoped __attribute__((cleanup(delete_GameManager))) GameManager
 typedef struct GameManager      GameManager;
 
@@ -64,31 +57,14 @@ struct Tile {
 */
 struct Grid {
     Tile* tiles[SIZE][SIZE];
+    Tile* mergingTiles[SIZE][SIZE];
 };
 
-/** The Actuator displays the game state on your thing of choice (OLED display, printf to UART, etc)
-*/
-struct Actuator {
-    void        (*actuate)(Grid const * const g, ActuatorMetadata const am);
-};
-#define ActuatorTypeFrameBuffer 1
-#define ActuatorTypeUART        2
-
-/** A collection of extra stuff the Actuator needs
-*/
-struct ActuatorMetadata {
-    uint32_t    score;
-    uint32_t    bestScore;
-    uint8_t     over;
-    uint8_t     won;
-    uint8_t     terminated;
-};
 
 /** The GameManager is the core of the game
 */
 struct GameManager {
     UserProfile*        userProfile;
-    Actuator*           actuator;
     Grid*               grid;
     
     uint8_t             numStartTiles;
@@ -108,6 +84,7 @@ typedef enum {
 } Direction;
 
 /** Intended as a unit vector for iterating in a specific Direction
+    Up/down is inverted, because grid display is most commonly done from top to bottom
 */
 typedef struct Vector Vector;
 struct Vector {
@@ -115,52 +92,10 @@ struct Vector {
     int8_t      y;
 };
 
-// --- POSITION FUNCTIONS --- //
-uint8_t withinBounds(Position const p);
-uint8_t positionsEqual(Position const first, Position const second);
-// --- TILE FUNCTIONS --- //
-Tile* new_Tile(Position const p, uint8_t value);
-void savePosition(Tile* const t);
-void updatePosition(Tile* const t, Position const p);
-// --- GRID FUNCTIONS --- //
-Grid* new_Grid();
-uint8_t cellsAvailable(Grid const * const g);
-Tile* cellContent(Grid const * const g, Position const p);
-uint8_t cellOccupied(Grid const * const g, Position const p);
-void insertTile(Grid* const g, Tile* const t);
-void removeTile(Grid* const g, Tile const * const t);
-// --- USERPROFILE FUNCTIONS --- //
-uint32_t getBestScore(UserProfile const * const p);
-void setBestScore(UserProfile* const p, uint32_t const score);
-void setGameState(UserProfile* const p, Grid const * const g);
-void clearGameState(UserProfile* const p);
-// --- GAME MANAGER FUNCTIONS --- //
-GameManager* new_GameManager();
-void delete_GameManager(GameManager* const * const gm);
-uint8_t isGameTerminated(GameManager const * const gm);
-void addStartTiles(GameManager* const gm);
-void addRandomTile(GameManager* const gm);
-Position randomAvailablePosition(GameManager const * const gm);
-void actuate(GameManager* const gm);
-void prepareTiles(GameManager* const gm);
-void moveTile(GameManager* const gm, Tile* const t, Position const p);
-void move(GameManager* const gm, Direction const d);
-FarthestPosition findFarthestPosition(GameManager const * const gm, Position p, Vector const v);
-uint8_t movesAvailable(GameManager const * const gm);
-uint8_t tileMatchesAvailable(GameManager const * const gm);
-// --- VECTOR FUNCTIONS --- //
-Vector getVector(Direction const d);
-// --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(void);
-void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am);
-void actuateUART(Grid const * const g, ActuatorMetadata const am);
-// --- MISC FUNCTIONS --- //
-void drawBackground();
-
 
 
 // --- POSITION FUNCTIONS --- //
-uint8_t withinBounds(Position const p){
+static inline uint8_t withinBounds(Position const p){
     return 
         p.x     >=  0       &&
         p.y     >=  0       &&
@@ -168,8 +103,24 @@ uint8_t withinBounds(Position const p){
         p.y     <   SIZE    ;
 }
 
-uint8_t positionsEqual(Position const first, Position const second){
+static inline uint8_t positionsEqual(Position const first, Position const second){
     return first.x == second.x  &&  first.y == second.y;
+}
+
+static inline int8_t traversal(int8_t dir, int8_t dist){
+    return dir == 1 ? SIZE-1-dist : dist;
+}
+
+
+// --- VECTOR FUNCTIONS --- //
+Vector getVector(Direction d){
+    switch(d){
+    case dir_up:    return (Vector){.x = 0,  .y = -1};
+    case dir_right: return (Vector){.x = 1,  .y = 0 };
+    case dir_down:  return (Vector){.x = 0,  .y = 1 };
+    case dir_left:  return (Vector){.x = -1, .y = 0 };
+    default:        return (Vector){.x = 0,  .y = 0 };
+    }
 }
 
 
@@ -180,10 +131,6 @@ Tile* new_Tile(Position const p, uint8_t value){
     t->position = p;
     t->value    = value;
     return t;
-}
-
-void savePosition(Tile* const t){
-    t->previousPosition = t->position;
 }
 
 void updatePosition(Tile* const t, Position const p){
@@ -198,15 +145,21 @@ Grid* new_Grid(){
     return g;    
 }
 
-uint8_t cellsAvailable(Grid const * const g){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
-            if(!g->tiles[x][y]){
-                return 1;
-            }
-        }
-    }
-    return 0;
+void insertTile(Grid* const g, Tile* const t){
+    g->tiles[t->position.x][t->position.y] = t;
+}
+
+void moveTile(Grid* const g, Tile* const t, Position const p){
+    g->tiles[t->position.x][t->position.y] = NULL;
+    g->tiles[p.x][p.y] = t;
+    updatePosition(t, p);
+}
+
+void setMerging(Grid* const g, Tile const * const t){
+    g->mergingTiles[t->position.x][t->position.y] =
+        g->tiles[t->position.x][t->position.y];
+
+    g->tiles[t->position.x][t->position.y] = NULL;
 }
 
 Tile* cellContent(Grid const * const g, Position const p){
@@ -221,12 +174,78 @@ uint8_t cellOccupied(Grid const * const g, Position const p){
     return !!g->tiles[p.x][p.y];
 }
 
-void insertTile(Grid* const g, Tile* const t){
-    g->tiles[t->position.x][t->position.y] = t;
+uint8_t cellsAvailable(Grid const * const g){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
+            if(!g->tiles[x][y]){
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
-void removeTile(Grid* const g, Tile const * const t){
-    g->tiles[t->position.x][t->position.y] = NULL;
+uint8_t tileMatchesAvailable(Grid const * const g){
+    Tile* t;
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
+            t = g->tiles[x][y];
+            if(t){
+                for(int8_t dir = 0; dir < 4; dir++){
+                    Vector v    = getVector(dir);
+                    Position p  = {.x = x + v.x, .y = y + v.y};
+                    Tile* other = cellContent(g, p);
+                    if(other && other->value == t->value){
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+uint8_t movesAvailable(Grid const * const g){
+    return cellsAvailable(g) || tileMatchesAvailable(g);
+}
+
+FarthestPosition findFarthestPosition(Grid const * const g, Position p, Vector const v){
+    Position previous;
+    do {
+        previous = p;
+        p = (Position){.x = previous.x + v.x,   .y = previous.y + v.y};
+    } while(withinBounds(p) && !cellOccupied(g, p));
+    
+    return (FarthestPosition){.farthest = previous, .next = p};
+}
+
+Position randomAvailablePosition(Grid const * const g){
+    Position p;
+    do {
+        p.x = rand() % SIZE;
+        p.y = rand() % SIZE;
+    } while(cellOccupied(g, p));
+    return p;
+}
+
+void addRandomTile(Grid* const g){
+    Tile* t = new_Tile(randomAvailablePosition(g), ((rand() % 10) < 9) ? 1 : 2);
+    insertTile(g, t);
+}
+
+void prepareTiles(Grid* const g){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
+            if(g->tiles[x][y]){
+                g->tiles[x][y]->mergedFrom = 0;
+                g->tiles[x][y]->previousPosition = g->tiles[x][y]->position;
+            }
+            if(g->mergingTiles[x][y]){
+                free(g->mergingTiles[x][y]);
+                g->mergingTiles[x][y] = NULL;
+            }
+        }
+    }
 }
 
 
@@ -239,9 +258,9 @@ void setBestScore(UserProfile* const p, uint32_t const score){
     p->game_2048.bestScore = score;
 }
 
-void setGameState(UserProfile* const p, Grid const * const g){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
+void saveGameState(UserProfile* const p, Grid const * const g){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
             if(g->tiles[x][y]){
                 p->game_2048.grid[x][y] = g->tiles[x][y]->value;
             } else {
@@ -252,8 +271,8 @@ void setGameState(UserProfile* const p, Grid const * const g){
 }
 
 void clearGameState(UserProfile* const p){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
             p->game_2048.grid[x][y] = 0;
         }
     }
@@ -261,20 +280,24 @@ void clearGameState(UserProfile* const p){
 
 
 // --- GAME MANAGER FUNCTIONS --- //
+
+void addStartTiles(GameManager* const gm);
+void actuate(GameManager* const gm);
+void displayGameState(GameManager const * const gm);
+
 GameManager* new_GameManager(){
     GameManager* gm = malloc(sizeof(GameManager));
     memset(gm, 0, sizeof(GameManager));
     
     gm->grid            = new_Grid();
     gm->numStartTiles   = NUM_START_TILES;
-    gm->actuator        = new_Actuator();
     gm->userProfile     = malloc(sizeof(UserProfile));
     *gm->userProfile    = getCurrentUserProfile();
     
     uint8_t foundStoredGame = 0;
 
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
             if(gm->userProfile->game_2048.grid[x][y]){
                 Tile* t = new_Tile(
                     (Position){.x = x, .y = y}, 
@@ -294,42 +317,89 @@ GameManager* new_GameManager(){
 }
 
 void delete_GameManager(GameManager* const * const gm){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
             if((*gm)->grid->tiles[x][y]){
                 free((*gm)->grid->tiles[x][y]);
+                free((*gm)->grid->mergingTiles[x][y]);
             }
         }
     }
     free((*gm)->grid);
-    free((*gm)->actuator);
     free((*gm)->userProfile);
     free(*gm);
     return;
+}
+
+void addStartTiles(GameManager* const gm){
+    for(uint8_t i = 0; i < gm->numStartTiles; i++){
+        addRandomTile(gm->grid);
+    }
 }
 
 uint8_t isGameTerminated(GameManager const * const gm){
     return gm->over || (gm->won && !gm->keepPlaying);
 }
 
-void addStartTiles(GameManager* const gm){
-    for(uint8_t i = 0; i < gm->numStartTiles; i++){
-        addRandomTile(gm);
+void move(GameManager* const gm, Direction const d){
+    if(isGameTerminated(gm)) return;
+    
+    Vector      v       = getVector(d);
+    uint8_t     moved   = 0;
+    
+    prepareTiles(gm->grid);
+    
+    
+    for(int8_t ix = 0; ix < SIZE; ix++){
+        for(int8_t iy = 0; iy < SIZE; iy++){
+            Position p = (Position){
+                .x = traversal(v.x, ix),
+                .y = traversal(v.y, iy),
+            };
+            Tile* t = cellContent(gm->grid, p);
+            
+            if(t){
+                FarthestPosition    fp      = findFarthestPosition(gm->grid, p, v);
+                Tile*               next    = cellContent(gm->grid, fp.next);
+                
+                if( next  &&  
+                    next->value == t->value  &&  
+                    !next->mergedFrom
+                ){
+                    Tile* merged = new_Tile(fp.next, t->value + 1);
+                    merged->mergedFrom = 1;
+                    
+                    
+                    setMerging(gm->grid, t);
+                    setMerging(gm->grid, next);
+                    updatePosition(t, fp.next);
+                    insertTile(gm->grid, merged);                    
+                    
+                    gm->score += (1 << merged->value);
+                    
+                    if((1 << merged->value) == TILE_2048){
+                        gm->won = 1;
+                    }
+                } else {
+                    moveTile(gm->grid, t, fp.farthest);
+                }
+                
+                if(!positionsEqual(p, t->position)){
+                    moved = 1;
+                }
+            }
+        }
     }
-}
-
-void addRandomTile(GameManager* const gm){
-    Tile* t = new_Tile(randomAvailablePosition(gm), ((rand() % 10) < 9) ? 1 : 2);
-    insertTile(gm->grid, t);
-}
-
-Position randomAvailablePosition(GameManager const * const gm){
-    Position p;
-    do {
-        p.x = rand() % SIZE;
-        p.y = rand() % SIZE;
-    } while(cellOccupied(gm->grid, p));
-    return p;
+    
+    if(moved){
+        addRandomTile(gm->grid);
+        
+        if(!movesAvailable(gm->grid)){
+            gm->over = 1;
+        }
+        
+        actuate(gm);
+    }
 }
 
 void actuate(GameManager* const gm){
@@ -342,172 +412,14 @@ void actuate(GameManager* const gm){
     if(isGameTerminated(gm)){
         clearGameState(gm->userProfile);
     } else {
-        setGameState(gm->userProfile, gm->grid);
+        saveGameState(gm->userProfile, gm->grid);
     }
-    
 
-    gm->actuator->actuate(
-        gm->grid,
-        (ActuatorMetadata){
-            .score      = gm->score,
-            .over       = gm->over,
-            .won        = gm->won,
-            .bestScore  = getBestScore(gm->userProfile),
-            .terminated = isGameTerminated(gm),
-        }
-    );
+    displayGameState(gm);
 }
 
-void prepareTiles(GameManager* const gm){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
-            if(gm->grid->tiles[x][y]){
-                gm->grid->tiles[x][y]->mergedFrom = 0;
-                savePosition(gm->grid->tiles[x][y]);
-            }
-        }
-    }
-}
-
-void moveTile(GameManager* const gm, Tile* const t, Position const p){
-    gm->grid->tiles[t->position.x][t->position.y] = NULL;
-    gm->grid->tiles[p.x][p.y] = t;
-    updatePosition(t, p);
-}
-
-void move(GameManager* const gm, Direction const d){
-    if(isGameTerminated(gm)) return;
-    
-    Vector      v   = getVector(d);
-    Position    p;
-    Tile*       t;
-    
-    uint8_t traversals_x[4];
-    uint8_t traversals_y[4];
-    memcpy(&traversals_x, &traversal_asc, SIZE);
-    memcpy(&traversals_y, &traversal_asc, SIZE);
-    if(v.x == 1){
-        memcpy(&traversals_x, &traversal_dsc, SIZE);
-    }
-    if(v.y == 1){
-        memcpy(&traversals_y, &traversal_dsc, SIZE);
-    }
-    
-    uint8_t moved = 0;
-    
-    prepareTiles(gm);
-    
-    //printf("traversals_x = [%d, %d, %d, %d]\n", traversals_x[0], traversals_x[1], traversals_x[2], traversals_x[3]);
-    //printf("traversals_y = [%d, %d, %d, %d]\n", traversals_y[0], traversals_y[1], traversals_y[2], traversals_y[3]);
-    
-    for(int ix = 0; ix < SIZE; ix++){
-        for(int iy = 0; iy < SIZE; iy++){
-            p = (Position){.x = traversals_x[ix], .y = traversals_y[iy]};
-            t = cellContent(gm->grid, p);
-            
-            if(t){
-                FarthestPosition    fp      = findFarthestPosition(gm, p, v);
-                Tile*               next    = cellContent(gm->grid, fp.next);
-                
-                if( next  &&  
-                    next->value == t->value  &&  
-                    !next->mergedFrom
-                ){
-                    Tile* merged = new_Tile(fp.next, t->value + 1);
-                    merged->mergedFrom = 1;
-                    
-                    
-                    insertTile(gm->grid, merged);
-                    removeTile(gm->grid, t);
-                    
-                    updatePosition(t, fp.next);
-                    
-                    gm->score += (1 << merged->value);
-                    
-                    if((1 << merged->value) == TILE_2048){
-                        gm->won = 1;
-                    }
-                    free(t);
-                    free(next);
-                } else {
-                    moveTile(gm, t, fp.farthest);
-                }
-                
-                if(!positionsEqual(p, t->position)){
-                    moved = 1;
-                }
-            }
-        }
-    }
-    
-    if(moved){
-        addRandomTile(gm);
-        
-        if(!movesAvailable(gm)){
-            gm->over = 1;
-        }
-        
-        actuate(gm);
-    }
-}
-
-FarthestPosition findFarthestPosition(GameManager const * const gm, Position p, Vector const v){
-    Position previous;
-    do {
-        previous = p;
-        p = (Position){.x = previous.x + v.x,   .y = previous.y + v.y};
-    } while(withinBounds(p) && !cellOccupied(gm->grid, p));
-    
-    return (FarthestPosition){.farthest = previous, .next = p};
-}
-
-uint8_t movesAvailable(GameManager const * const gm){
-    return cellsAvailable(gm->grid) || tileMatchesAvailable(gm);
-}
-
-uint8_t tileMatchesAvailable(GameManager const * const gm){
-    Tile* t;
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
-            t = gm->grid->tiles[x][y];
-            if(t){
-                for(int dir = 0; dir < 4; dir++){
-                    Vector v    = getVector(dir);
-                    Position p  = {.x = x + v.x, .y = y + v.y};
-                    Tile* other = cellContent(gm->grid, p);
-                    if(other && other->value == t->value){
-                        return 1;
-                    }
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-
-// --- VECTOR FUNCTIONS --- //
-Vector getVector(Direction d){
-    switch(d){
-    case dir_up:    return (Vector){.x = 0,  .y = -1};
-    case dir_right: return (Vector){.x = 1,  .y = 0 };
-    case dir_down:  return (Vector){.x = 0,  .y = 1 };
-    case dir_left:  return (Vector){.x = -1, .y = 0 };
-    default:        return (Vector){.x = 0,  .y = 0 };
-    }
-}
-
-
-// --- ACTUATOR FUNCTIONS --- //
-Actuator* new_Actuator(void){
-    Actuator* a = malloc(sizeof(Actuator));
-    memset(a, 0, sizeof(Actuator));
-
-    a->actuate = actuateFrameBuffer;
-    drawBackground();
-    return a;
-}
-
+#define GRID_SIZE_X     16
+#define GRID_SIZE_Y     15
 #define SLIDER_L_BBOX           69,  85,  54,  62
 #define SLIDER_L_TEXT_CURSOR    71,  56
 #define SLIDER_R_BBOX           111, 126, 54,  62
@@ -515,8 +427,8 @@ Actuator* new_Actuator(void){
 
 void drawBackground(void){
     fbuf_clear();
-    for(uint8_t x = 0; x <= GRID_SIZE_X*4; x += GRID_SIZE_X){
-        for(uint8_t y = 0; y <= GRID_SIZE_Y*4; y += GRID_SIZE_Y){
+    for(uint8_t x = 0; x <= GRID_SIZE_X*SIZE; x += GRID_SIZE_X){
+        for(uint8_t y = 0; y <= GRID_SIZE_Y*SIZE; y += GRID_SIZE_Y){
             fbuf_draw_rectangle(0, x, 0, y);
         }
     }
@@ -524,10 +436,10 @@ void drawBackground(void){
     fbuf_set_font(font8x8());
     fbuf_set_font_spacing(-2, 0);
 
-    fbuf_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 0);
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 3, 0);
     fbuf_printf("Score");
 
-    fbuf_set_cursor_to_pixel(GRID_SIZE_X*4 + 3, 20);
+    fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 3, 20);
     fbuf_printf("Best");
         
     fbuf_draw_rectangle(SLIDER_L_BBOX);
@@ -538,29 +450,57 @@ void drawBackground(void){
     fbuf_render();
 }
 
-void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
-    for(int x = 0; x < SIZE; x++){
-        for(int y = 0; y < SIZE; y++){
+void displayGameState(GameManager const * const gm){
+    fbuf_set_font(font_2048());
+    for(int8_t x = 0; x < SIZE; x++){
+        for(int8_t y = 0; y < SIZE; y++){
             fbuf_clear_area(x*GRID_SIZE_X+1, (x+1)*GRID_SIZE_X-1, y*GRID_SIZE_Y+1, (y+1)*GRID_SIZE_Y-1);
-            if(g->tiles[x][y]){
-                fbuf_set_font(font_2048());
+            if(gm->grid->tiles[x][y]){
                 fbuf_set_cursor_to_pixel(x*GRID_SIZE_X+2, y*GRID_SIZE_Y+6);
-                fbuf_draw_char(g->tiles[x][y]->value);
+                fbuf_draw_char(gm->grid->tiles[x][y]->value);
             }
         }
     }
+
+    /*
+    Animations:
+        Animation order:
+            Movement                (~5 frames)
+            New tiles from merge    (~4 frames (1 overlap from movement))
+            New random tile         (~4 frames)
+
+    Outline:
+        for(int y = 0; y < SIZE; y++){
+            for(int x = 0; x < SIZE; x++){
+                Tile* pt = g->mergingTiles[x][y];
+                if(pt){
+                    printf("Move-m (%d, %d) to (%d, %d)\n",
+                        pt->previousPosition.x, pt->previousPosition.y, pt->position.x, pt->position.y);
+                }
+                Tile* t = g->tiles[x][y];
+                if(t){
+                    if(positionsEqual(t->previousPosition, (Position){-1, -1})){
+                        printf("New at (%d, %d) (value: %d) (merged: %d)\n", x, y, 1 << t->value, t->merged);
+                    } else if(!positionsEqual(t->previousPosition, t->position)){
+                        printf("Move   (%d, %d) to (%d, %d)\n",
+                            t->previousPosition.x, t->previousPosition.y, t->position.x, t->position.y);
+                    }
+                }
+            }
+        }
+    */
 
     fbuf_set_font(font8x8());
     fbuf_set_font_spacing(-2, 0);
 
     fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 8);
-    fbuf_printf("%6ld", am.score);
+    fbuf_printf("%6ld", gm->score);
 
     fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 28);
-    fbuf_printf("%6ld", am.bestScore);
+    fbuf_printf("%6ld", getBestScore(gm->userProfile));
 
-    if(am.terminated){
-        if(am.over){
+    if(isGameTerminated(gm)){
+        if(gm->over){
             fbuf_set_font_spacing(0, 0);
             fbuf_set_cursor_to_pixel(2, 25);
             fbuf_printf("Game over!");
@@ -568,7 +508,7 @@ void actuateFrameBuffer(Grid const * const g, ActuatorMetadata const am){
             fbuf_set_font_spacing(-1, 0);
             fbuf_set_cursor_to_pixel(11, 46);
             fbuf_printf("New game?");
-        } else if(am.won){
+        } else if(gm->won){
             fbuf_set_font_spacing(0, 0);
             fbuf_set_cursor_to_pixel(9, 25);
             fbuf_printf("You win!");
@@ -598,15 +538,14 @@ void game_2048(){
     Direction   inputDirn       = dir_down;
     JOY_dir_t   joyDirn         = JOY_get_direction();
     JOY_dir_t   joyDirnPrev     = joyDirn;
-    uint8_t     quit            = 0;
 
     fbuf_set_font(font8x8());
     fbuf_set_font_spacing(-2, 0);
     
-    drawBackground();   // for some reason the text isn't drawn the first time. (WAT)
+    drawBackground();
     actuate(gm);
 
-    while(!quit){
+    while(1){
         joyDirnPrev = joyDirn;
         joyDirn     = JOY_get_direction();
         if(joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
@@ -623,9 +562,7 @@ void game_2048(){
         if(isGameTerminated(gm)){
             if(gm->over){
                 if(SLI_get_left_button()){  // quit
-                    fbuf_clear();
-                    fbuf_render();
-                    quit = 1;
+                    goto quit;
                 }
                 if(SLI_get_right_button()){ // restart
                     fbuf_clear();
@@ -637,9 +574,7 @@ void game_2048(){
                 }
             } else if(gm->won){
                 if(SLI_get_left_button()){  // quit
-                    fbuf_clear();
-                    fbuf_render();
-                    quit = 1;
+                    goto quit;
                 }
                 if(SLI_get_right_button()){ // keep playing
                     gm->keepPlaying = 1;
@@ -650,12 +585,13 @@ void game_2048(){
             }
         } else {
             if(SLI_get_left_button()){  // quit
-                fbuf_clear();
-                fbuf_render();
-                quit = 1;
+                goto quit;
             }
         }
     }
+quit:
+    fbuf_clear();
+    fbuf_render();
     writeCurrentUserProfile(gm->userProfile);
     
     return;
