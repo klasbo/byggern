@@ -13,7 +13,7 @@
 void can_test(void){
 
     mcp2515_reset();
-    mcp2515_bit_modify(MCP_CANCTRL, MCP_CANCTRL__SET_MODE_LOOPBACK);
+    mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_LOOPBACK);
     
     printf("\nMCP_CANCTRL: %x\n", mcp2515_read(MCP_CANCTRL));
     
