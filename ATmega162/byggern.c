@@ -12,7 +12,7 @@
 #include "drivers/analog/slider.h"
 #include "drivers/display/oled.h"
 #include "drivers/display/frame_buffer.h"
-#include "drivers/display/fonts/font8x8.h"
+#include "drivers/display/fonts/font5x7w.h"
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "drivers/communication/can/can.h"
@@ -21,11 +21,9 @@
 #include "userprofile/userprofile.h"
 #include "macros.h"
 
-
-
 extern void createDefaultProfile(void);
 
-int main(void){
+int main(void){    
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     
@@ -52,8 +50,8 @@ int main(void){
         
         if_assignment_modifies(prev_menu, menu){
             // Set the font each time, because a program may have modified it.
-            fbuf_set_font(font8x8());
-            fbuf_set_font_spacing(-1, 0);
+            fbuf_set_font(font5x7w());
+            fbuf_set_font_spacing(1, 1);
             fbuf_clear();
 
             // Parent name
@@ -70,7 +68,10 @@ int main(void){
             
             // Indicate runnable program
             if(menu->item.fun){
-                fbuf_set_cursor(10, 7);
+                fbuf_set_cursor_to_pixel(
+                    DISP_WIDTH - fbuf_get_current_font_config().width*6, 
+                    DISP_HEIGHT-8
+                );
                 fbuf_printf("[Open]");
             }
 

@@ -8,8 +8,9 @@
 #include "userprofile.h"
 #include "../drivers/analog/joystick.h"
 #include "../drivers/analog/slider.h"
-#include "../drivers/display/fonts/font8x8.h"
+#include "../drivers/display/fonts/font5x7w.h"
 #include "../drivers/display/frame_buffer.h"
+#include "../drivers/display/oled.h"
 #include "../macros.h"
 
 
@@ -62,9 +63,7 @@ void deleteUserProfile(uint8_t user){
 
 
 
-void renderUsernamesBackground(char* title){
-    fbuf_clear();
-    fbuf_set_font(font8x8());
+static void renderUsernamesBackground(const char* title){
     fbuf_printf("%s\n", title);
     for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
         if(i == getCurrentUser()){
@@ -73,17 +72,32 @@ void renderUsernamesBackground(char* title){
         fbuf_set_cursor(2, i+1);
         fbuf_printf("%s\n", getUserProfile(i).username);
     }
-    fbuf_printf("[Quit]   [Sel]");
+    fbuf_printf("[Quit]      [Sel]");
     fbuf_render();
 }
 
+static void renderLeftButton(const char* title){
+    fbuf_set_cursor_to_pixel(0, DISP_HEIGHT-8);
+    fbuf_printf("[%s]", title);
+}
+
+static void renderRightButton(const char* title){
+    fbuf_set_cursor_to_pixel(
+        DISP_WIDTH  -  fbuf_get_current_font_config().width * (strlen(title)+2), 
+        DISP_HEIGHT - 8
+    );
+    fbuf_printf("[%s]", title);
+}
 
 
-void settingsIterator(
+static void settingsIterator(
     void    (*renderBackground)(void),
     uint8_t numItems,
     void    (*action)(uint8_t)
 ){
+    fbuf_set_font(font5x7w());
+    fbuf_set_font_spacing(1, 1);
+    fbuf_clear();
     renderBackground();
 
     JOY_dir_t joyDirnPrev   = NEUTRAL;
@@ -104,11 +118,11 @@ void settingsIterator(
             fbuf_printf(" ");
             switch(joyDirn){
                 case UP:
-                selected = selected > 0 ?           selected - 1 : selected;
-                break;
+                    selected = selected > 0 ?           selected - 1 : selected;
+                    break;
                 case DOWN:
-                selected = selected < numItems-1 ?  selected + 1 : selected;
-                break;
+                    selected = selected < numItems-1 ?  selected + 1 : selected;
+                    break;
                 default: break;
             }
         }
@@ -146,10 +160,18 @@ void user_add(void){
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
-                fbuf_set_cursor(0, 7);
-                fbuf_printf("[Back]    [Ok]");
+                renderLeftButton("Back");
+                renderRightButton("Ok");
                 fbuf_render();
                 UserProfile newUser = getUserProfile(selected);
+
+                // set default config
+                newUser.game_pong.motorInputType    = CONTROL_JOY_X;
+                newUser.game_pong.motorSensitivity  = 3;
+                newUser.game_pong.servoInputType    = CONTROL_SLI_R;
+                newUser.game_pong.solenoidInputType = CONTROL_JOY_UP;
+                newUser.game_pong.useBluetooth      = 0;
+
                 // edit newUser.username
                 uint8_t     SLIRightButtonReleased  = 0;
                 char        c                       = 'a';
@@ -196,11 +218,6 @@ void user_add(void){
                         SLIRightButtonReleased = 1;
                     }
                     if(SLI_get_right_button() && SLIRightButtonReleased){
-                        newUser.game_pong.motorInputType    = CONTROL_JOY_X;
-                        newUser.game_pong.motorSensitivity  = 3;
-                        newUser.game_pong.servoInputType    = CONTROL_SLI_R;
-                        newUser.game_pong.solenoidInputType = CONTROL_JOY_UP;
-                        newUser.game_pong.useBluetooth      = 0;
                         writeUserProfile(&newUser, selected);
                         setCurrentUser(selected);
                         return;
@@ -236,8 +253,7 @@ void user_highscores_pong(void){
             fbuf_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
         }
     }
-    fbuf_set_cursor(0, 7);
-    fbuf_printf("[Quit]");
+    renderLeftButton("[Quit]");
     fbuf_render();
     while(1){
         if(SLI_get_left_button()){
@@ -256,8 +272,7 @@ void user_highscores_2048(void){
             fbuf_printf("%-8s: %5lu\n", p.username, p.game_2048.bestScore);
         }
     }
-    fbuf_set_cursor(0, 7);
-    fbuf_printf("[Quit]");
+    renderLeftButton("[Quit]");
     fbuf_render();
     while(1){
         if(SLI_get_left_button()){
@@ -271,8 +286,6 @@ void user_highscores_2048(void){
 void controls_motor(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_clear();
-            fbuf_set_font(font8x8());
             fbuf_printf("Motor\n");
             fbuf_printf(
                 "  Joy X\n"
@@ -287,8 +300,8 @@ void controls_motor(void){
                 fbuf_printf("-");
             }
             
-            fbuf_set_cursor(0, 7);
-            fbuf_printf("[Quit]   [Sel]");
+            renderLeftButton("Quit");
+            renderRightButton("Sel");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -307,8 +320,6 @@ void controls_motor(void){
 void controls_motor_sensitivity(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_clear();
-            fbuf_set_font(font8x8());
             fbuf_printf("Sensitivity\n");
             fbuf_printf(
               "  1\n"
@@ -323,9 +334,9 @@ void controls_motor_sensitivity(void){
                 fbuf_set_cursor(0, currentValue);
                 fbuf_printf("-");
             }
-
-            fbuf_set_cursor(0, 7);
-            fbuf_printf("[Quit]   [Sel]");
+            
+            renderLeftButton("Quit");
+            renderRightButton("Sel");
         }),
         5,
         lambda(void, (uint8_t val){
@@ -339,8 +350,6 @@ void controls_motor_sensitivity(void){
 void controls_servo(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_clear();
-            fbuf_set_font(font8x8());
             fbuf_printf("Servo\n");
             fbuf_printf(
                 "  Joy X\n"
@@ -355,8 +364,8 @@ void controls_servo(void){
                 fbuf_printf("-");
             }
             
-            fbuf_set_cursor(0, 7);
-            fbuf_printf("[Quit]   [Sel]");
+            renderLeftButton("Quit");
+            renderRightButton("Sel");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -375,8 +384,6 @@ void controls_servo(void){
 void controls_solenoid(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_clear();
-            fbuf_set_font(font8x8());
             fbuf_printf("Solenoid\n");
             fbuf_printf(
                 "  Joy Btn\n"
@@ -390,8 +397,8 @@ void controls_solenoid(void){
                 fbuf_printf("-");
             }
             
-            fbuf_set_cursor(0, 7);
-            fbuf_printf("[Quit]   [Sel]");
+            renderLeftButton("Quit");
+            renderRightButton("Sel");
         }),
         3,
         lambda(void, (uint8_t selected){
@@ -409,8 +416,6 @@ void controls_solenoid(void){
 void controls_bluetooth(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_clear();
-            fbuf_set_font(font8x8());
             fbuf_printf("Bluetooth\n");
             fbuf_printf(
             "  Off\n"
@@ -423,8 +428,8 @@ void controls_bluetooth(void){
                 fbuf_printf("-");
             }
             
-            fbuf_set_cursor(0, 7);
-            fbuf_printf("[Quit]   [Sel]");
+            renderLeftButton("Quit");
+            renderRightButton("Sel");
         }),
         2,
         lambda(void, (uint8_t val){

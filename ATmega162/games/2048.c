@@ -8,7 +8,7 @@
 #include "../drivers/analog/joystick.h"
 #include "../drivers/analog/slider.h"
 #include "../drivers/display/frame_buffer.h"
-#include "../drivers/display/fonts/font8x8.h"
+#include "../drivers/display/fonts/font5x7w.h"
 #include "../drivers/display/fonts/font_2048.h"
 #include "../userprofile/userprofile.h"
 
@@ -16,7 +16,7 @@
 #define SIZE            4
 #define NUM_START_TILES 2
 
-#define TILE_2048       16  // The tile value needed to win (2048 by default)
+#define TILE_2048       2048  // The tile value needed to win (2048 by default)
 
 typedef struct Position         Position;
 typedef struct FarthestPosition FarthestPosition;
@@ -433,8 +433,8 @@ void drawBackground(void){
         }
     }
         
-    fbuf_set_font(font8x8());
-    fbuf_set_font_spacing(-2, 0);
+    fbuf_set_font(font5x7w());
+    fbuf_set_font_spacing(1, 0);
 
     fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 3, 0);
     fbuf_printf("Score");
@@ -490,8 +490,8 @@ void displayGameState(GameManager const * const gm){
         }
     */
 
-    fbuf_set_font(font8x8());
-    fbuf_set_font_spacing(-2, 0);
+    fbuf_set_font(font5x7w());
+    fbuf_set_font_spacing(1, 0);
 
     fbuf_set_cursor_to_pixel(GRID_SIZE_X*SIZE + 2, 8);
     fbuf_printf("%6ld", gm->score);
@@ -501,19 +501,19 @@ void displayGameState(GameManager const * const gm){
 
     if(isGameTerminated(gm)){
         if(gm->over){
-            fbuf_set_font_spacing(0, 0);
+            //fbuf_set_font_spacing(1, 0);
             fbuf_set_cursor_to_pixel(2, 25);
             fbuf_printf("Game over!");
             
-            fbuf_set_font_spacing(-1, 0);
+            //fbuf_set_font_spacing(0, 0);
             fbuf_set_cursor_to_pixel(11, 46);
             fbuf_printf("New game?");
         } else if(gm->won){
-            fbuf_set_font_spacing(0, 0);
+            //fbuf_set_font_spacing(1, 0);
             fbuf_set_cursor_to_pixel(9, 25);
             fbuf_printf("You win!");
             
-            fbuf_set_font_spacing(-1, 0);
+            //fbuf_set_font_spacing(0, 0);
             fbuf_set_cursor_to_pixel(11, 46);
             fbuf_printf("Keep Playing?");            
         }
@@ -539,8 +539,8 @@ void game_2048(){
     JOY_dir_t   joyDirn         = JOY_get_direction();
     JOY_dir_t   joyDirnPrev     = joyDirn;
 
-    fbuf_set_font(font8x8());
-    fbuf_set_font_spacing(-2, 0);
+    fbuf_set_font(font5x7w());
+    fbuf_set_font_spacing(1, 0);
     
     drawBackground();
     actuate(gm);

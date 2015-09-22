@@ -94,3 +94,5 @@ void fbuf_set_cursor(uint8_t col, uint8_t row);
 /// ----- misc ----- ///
 
 uint8_t reverse_bits(uint8_t x);
+
+FontDescr fbuf_get_current_font_config(void);

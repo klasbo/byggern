@@ -16,10 +16,7 @@ static volatile void*   fb_addr;
 static uint8_t          cursor_x;
 static uint8_t          cursor_y;
 
-static uint8_t          font_width;
-static uint8_t          font_height;
-static char             font_start_offset;
-static unsigned char*   font_addr;
+static FontDescr        font;
 
 static int8_t           font_horiz_spacing;
 static int8_t           font_vert_spacing;
@@ -34,7 +31,8 @@ void fbuf_set_addr(volatile void* addr){
 
 void fbuf_render(void){
     for(int i = 0; i < DISP_PAGES; i++){
-        oled_go_to_line(i);
+        oled_go_to_page(i);
+        oled_go_to_column(0);
         for(int j = 0; j < DISP_WIDTH; j++){
             oled_write_data((char)frame[i][j]);
         }
@@ -179,31 +177,37 @@ void fbuf_printf_P(const char* fmt, ...){
 }
 
 void fbuf_draw_char(char c){
-    if(c == '\n'  &&  '\n' < font_start_offset){    // special case for newline when it is not part of the font
+    if(c == '\n'  &&  '\n' < font.start_offset){    // special case for newline when it is not part of the font
         for(uint8_t x = cursor_x; x < DISP_WIDTH; x++){
-            fbuf_draw_high_bits(0, x, cursor_y, font_height);
+            fbuf_draw_high_bits(0, x, cursor_y, font.height);
         }
-        cursor_y = (cursor_y + font_height + font_vert_spacing) % DISP_HEIGHT;
+        cursor_y = (cursor_y + font.height + font_vert_spacing) % DISP_HEIGHT;
         cursor_x = 0;
     } else {
-        for(uint8_t x = 0; x < font_width; x++){
+        for(uint8_t x = 0; x < font.width; x++){
             fbuf_draw_high_bits(
-                pgm_read_byte( font_addr + (c-font_start_offset)*font_width + x ),
+                pgm_read_byte( font.addr + (c-font.start_offset)*font.width + x ),
                 cursor_x + x,
                 cursor_y,
-                font_height
+                font.height
             );
         }
-        cursor_x += font_width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
+        cursor_x += font.width + font_horiz_spacing; // make sure this doesn't draw stupid places in sram (fix draw_xx_n)
     }
 }
 
 void fbuf_set_font(FontDescr fd){
-    font_addr           = fd.addr;
-    font_width          = fd.width;
-    font_height         = fd.height;
-    font_start_offset   = fd.start_offset;
+    font = fd;
     fbuf_set_font_spacing(0, 0);
+}
+
+FontDescr fbuf_get_current_font_config(void){
+    return (FontDescr){
+        .addr           = font.addr,
+        .width          = font.width + font_horiz_spacing,
+        .height         = font.height + font_vert_spacing,
+        .start_offset   = font.start_offset,
+    };
 }
 
 void fbuf_set_font_spacing(int8_t horizontal, int8_t vertical){
@@ -217,6 +221,6 @@ void fbuf_set_cursor_to_pixel(uint8_t x, uint8_t y){
 }
 
 void fbuf_set_cursor(uint8_t col, uint8_t row){
-    cursor_x = col * (font_width + font_horiz_spacing);
-    cursor_y = row * (font_height + font_vert_spacing);
+    cursor_x = col * (font.width + font_horiz_spacing);
+    cursor_y = row * (font.height + font_vert_spacing);
 }

@@ -10,7 +10,7 @@
 #include "../drivers/analog/joystick.h"
 #include "../drivers/communication/can/can.h"
 #include "../drivers/display/frame_buffer.h"
-#include "../drivers/display/fonts/font8x8.h"
+#include "../drivers/display/fonts/font5x7w.h"
 #include "../../ArduinoMega2560/can_types.h"
 #include "../fifoqueue/fifoqueue.h"
 #include "../userprofile/userprofile.h"
@@ -160,7 +160,8 @@ void game_pong(void){
 
     void renderBackground(void){
         fbuf_clear();
-        fbuf_set_font(font8x8());
+        fbuf_set_font(font5x7w());
+        fbuf_set_font_spacing(1, 1);
         fbuf_printf(
             "PONG\n"
             " You vs Gravity"
