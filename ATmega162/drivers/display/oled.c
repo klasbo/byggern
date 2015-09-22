@@ -8,11 +8,11 @@
 #include "oled.h"
 #include "fonts/fontdescr.h"
 
-static int line_number      = 0;
-static int column_number    = 0;
+static uint8_t line_number      = 0;
+static uint8_t column_number    = 0;
 static FILE oled_stdout = FDEV_SETUP_STREAM(oled_write_char, NULL, _FDEV_SETUP_WRITE);
 
-static int              font_width;
+static uint8_t          font_width;
 static char             font_start_offset;
 static unsigned char*   font_addr;
 
@@ -26,7 +26,7 @@ void __attribute__ ((constructor)) oled_init(void){
     oled_write_cmd(OLED_SEGMENT_REMAP_END);
 
     oled_write_cmd(OLED_COM_PINS);
-    oled_write_cmd(OLED_COM_PIN_ALTERNATIVE);
+    oled_write_cmd(COM_PIN_ALTERNATIVE);
 
     oled_write_cmd(OLED_COM_SCAN_DIR_REMAPPED);
 
@@ -64,17 +64,18 @@ void __attribute__ ((constructor)) oled_init(void){
 
 
 void oled_reset(void){
-    oled_go_to_column(0);
-    for(int i = 0; i < DISP_PAGES; i++){
-        oled_clear_line(i);
+    for(uint8_t i = 0; i < DISP_PAGES; i++){
+        oled_clear_page(i);
     }
-    oled_go_to_line(0);
+    oled_go_to_page(0);
+    oled_go_to_column(0);
 }
 
-void oled_clear_line(int line){
-    oled_go_to_line(line);
+void oled_clear_page(uint8_t page){
+    oled_go_to_page(page);
+    oled_go_to_column(0);
     for(int i = 0; i < DISP_WIDTH; i++){
-        oled_write_data(0x74);
+        oled_write_data(0);
     }
 }
 
@@ -88,37 +89,31 @@ void oled_set_font(FontDescr fd){
 
 
 
-void oled_go_to_line(int line){
-    line_number = line;
-    oled_write_cmd(OLED_PAGE_START_ADDRESS + line);
+void oled_go_to_page(uint8_t page){
+    line_number = page;
+    oled_write_cmd(OLED_PMODE_PAGE_ADDRESS + page);
 }
 
-void oled_go_to_column(int column){
-    if(column < (DISP_WIDTH/font_width)){
-        column_number = column;
-        oled_write_cmd(OLED_COLUMN_ADDRESS);
-        oled_write_cmd(column*font_width);
-        oled_write_cmd(DISP_WIDTH-1);
-    } else {
-        // This is stupid. Asking to write outside the screen should trigger... something.
-        oled_write_cmd(OLED_COLUMN_ADDRESS);
-        oled_write_cmd(DISP_WIDTH-1);
-        oled_write_cmd(DISP_WIDTH-1);
-    }
+void oled_go_to_column(uint8_t column){
+    uint8_t col = column * font_width;
+    oled_write_cmd(OLED_PMODE_COLUMN_ADDRESS_LOWER + (col & 0x0f));
+    oled_write_cmd(OLED_PMODE_COLUMN_ADDRESS_UPPER + ((col & 0xf0) >> 4));
+    column_number = 0;
 }
 
 
 
 void oled_write_char(char c){
     if(c == '\n'){
-        for(int i = column_number*font_width; i < DISP_WIDTH; i++){
+        for(uint8_t i = column_number*font_width; i < DISP_WIDTH; i++){
             oled_write_data(0);
         }
         line_number = (line_number + 1) % DISP_PAGES;
-        oled_go_to_line(line_number);
+        oled_go_to_page(line_number);
         oled_go_to_column(0);
+        column_number = 0;
     } else {
-        for (int i = 0; i < font_width; i++){
+        for (uint8_t i = 0; i < font_width; i++){
             oled_write_data(pgm_read_byte( font_addr + (c-font_start_offset)*font_width + i ));
         }
         column_number++;

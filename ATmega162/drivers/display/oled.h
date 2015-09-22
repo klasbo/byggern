@@ -14,19 +14,35 @@
 
 
 /// -- OLED CONFIG COMMANDS -- ///
+/*
+Commands fall into three categories:
+    - Modal commands, such as on/off (AE/AF). For these, only a single command should be written
+    - Command/value pairs (or triplets), such as contrast (81). For these, a command is followed by one or more values
+    - Command/value combinations, such as page-mode page address (B0). For these, an offset is added to the command value
+*/
+
 
 #define OLED_MEMORY_ADDRESSING_MODE         0x20
 #define ADDRESSING_MODE_HORIZONTAL          0x00
 #define ADDRESSING_MODE_VERTICAL            0x01
 #define ADDRESSING_MODE_PAGE                0x02
 
-#define OLED_COLUMN_ADDRESS                 0x21
+#define OLED_HVMODE_COLUMN_ADDRESS          0x21
 //  Valid values (start addr):  0-127.  Reset: 0
 //  Valid values (end addr):    0-127.  Reset: 127 (0x7f)
 
-#define OLED_PAGE_ADDRESS                   0x22
+#define OLED_PMODE_COLUMN_ADDRESS_UPPER     0x10
+//  Valid offset values: 0-15
+
+#define OLED_PMODE_COLUMN_ADDRESS_LOWER     0x00
+//  Valid offset values: 0-15
+
+#define OLED_HVMODE_PAGE_ADDRESS            0x22
 //  Valid values (start addr):  0-7.    Reset: 0
 //  Valid values (end addr):    0-7.    Reset: 7
+
+#define OLED_PMODE_PAGE_ADDRESS             0xB0
+//  Valid offset values: 0-7.
 
 #define OLED_CONTRAST                       0x81
 //  Valid values: 0-255.    Reset: 127 (0x7f)
@@ -58,9 +74,6 @@
 #define VCOMH_DESELECT_0_77                 0x20
 #define VCOMH_DESELECT_0_83                 0x30
 
-#define OLED_PAGE_START_ADDRESS             0xB0
-//  Valid values: 0-7.
-
 #define OLED_DISPLAY_OFFSET                 0xD3
 //  Valid values: 0-63.     Reset: 0
 
@@ -72,15 +85,15 @@
 
 #define OLED_PRE_CHARGE_PERIOD              0xD9
 //  Valid values:
-//      upper byte (phase 1 period): 1-15
-//      lower byte (phase 2 period): 1-15
+//      upper nibble (phase 1 period): 1-15
+//      lower nibble (phase 2 period): 1-15
 //                          Reset: 0x22
 
 #define OLED_COM_PINS                       0xDA
-#define OLED_COM_PIN_SEQUENTIAL             0x02
-#define OLED_COM_PIN_SEQUENTIAL_LR_REMAP    0x22
-#define OLED_COM_PIN_ALTERNATIVE            0x12
-#define OLED_COM_PIN_ALTERNATIVE_LR_REMAP   0x32
+#define COM_PIN_SEQUENTIAL                  0x02
+#define COM_PIN_SEQUENTIAL_LR_REMAP         0x22
+#define COM_PIN_ALTERNATIVE                 0x12
+#define COM_PIN_ALTERNATIVE_LR_REMAP        0x32
 
 #define OLED_COM_SCAN_DIR_NORMAL            0xC0
 #define OLED_COM_SCAN_DIR_REMAPPED          0xC8
@@ -98,12 +111,12 @@ static inline void oled_write_data(char d){
 }
 
 void oled_reset(void);
-void oled_clear_line(int line);
+void oled_clear_page(uint8_t page);
 
 void oled_set_font(FontDescr fd);
 
-void oled_go_to_line(int line);
-void oled_go_to_column(int column);
+void oled_go_to_page(uint8_t line);
+void oled_go_to_column(uint8_t column);
 
 void oled_write_char(char c);
 void oled_printf(char* fmt, ...);
