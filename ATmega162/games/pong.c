@@ -8,7 +8,7 @@
 
 #include "../drivers/analog/slider.h"
 #include "../drivers/analog/joystick.h"
-#include "../drivers/communication/can/can.h"
+#include "../../lib/can/can.h"
 #include "../drivers/display/frame_buffer.h"
 #include "../drivers/display/fonts/font5x7w.h"
 #include "../../ArduinoMega2560/can_types.h"

@@ -15,7 +15,7 @@
 #include "drivers/display/fonts/font5x7w.h"
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
-#include "drivers/communication/can/can.h"
+#include "../lib/can/can.h"
 #include "drivers/communication/uart.h"
 
 #include "userprofile/userprofile.h"
