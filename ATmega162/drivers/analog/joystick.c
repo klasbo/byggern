@@ -12,7 +12,7 @@ void __attribute__ ((constructor)) joystick_init(void){
     extern void adc_init(void);
     adc_init();
     JOY_set_new_center();
-    PORTB &= ~(1 << PINB2);
+    DDRB &= ~(1 << DDB2);
 }
 
 void JOY_set_new_center(void){
@@ -21,21 +21,16 @@ void JOY_set_new_center(void){
 }
 
 JOY_pos_t JOY_get_position(void){
-
-    uint8_t x_pos_u = ADC_read(JOY_X);
-    uint8_t y_pos_u = ADC_read(JOY_Y);
-    
-    #define saturated_subtract(result, input,center)\
-        int8_t result=\
-            (input<center) ?   -((center-input)*100)/(center) :\
-            ((input-center)*100)/(255-center);
-                                                       
-    saturated_subtract(x_pos, x_pos_u, center_x)
-    saturated_subtract(y_pos, y_pos_u, center_y)
+    int16_t x16 = ((int16_t)ADC_read(JOY_X) - (int16_t)center_x);
+    int16_t y16 = ((int16_t)ADC_read(JOY_Y) - (int16_t)center_y);
     
     return (JOY_pos_t){
-        .x = x_pos,
-        .y = y_pos
+        .x =    (x16 > 127)     ? 127   : 
+                (x16 < -128)    ? -128  : 
+                                  (int8_t)x16,
+        .y =    (y16 > 127)     ? 127   : 
+                (y16 < -128)    ? -128  : 
+                                  (int8_t)y16,
     };
 }
 
