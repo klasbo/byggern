@@ -1,6 +1,4 @@
 
-#include "../../config.h"
-
 #include <stdio.h>
 #include <util/delay.h>
 #include <avr/pgmspace.h>

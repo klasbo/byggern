@@ -1,7 +1,6 @@
 
 
 #include <stdio.h>
-#define F_CPU 8000000
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 
@@ -15,7 +14,8 @@ void can_test(void){
     mcp2515_reset();
     mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_LOOPBACK);
     
-    printf("\nMCP_CANCTRL: %x\n", mcp2515_read(MCP_CANCTRL));
+    printf("MCP_CANCTRL: 0x%02x (should be 0x47)\n", mcp2515_read(MCP_CANCTRL));
+    printf("MCP_CANSTAT: 0x%02x (should be 0x40)\n", mcp2515_read(MCP_CANSTAT));
     
     can_msg_t msg1;
     can_msg_t msg2;

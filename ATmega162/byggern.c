@@ -1,6 +1,4 @@
 
-#include "config.h"
-
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>
@@ -16,7 +14,7 @@
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "../lib/can/can.h"
-#include "drivers/communication/uart.h"
+#include "../lib/uart/uart.h"
 
 #include "userprofile/userprofile.h"
 #include "macros.h"
@@ -24,6 +22,19 @@
 extern void createDefaultProfile(void);
 
 int main(void){    
+    uart_init();
+    joystick_init();
+    slider_init();
+    oled_init();
+    fbuf_set_addr(malloc(1024));
+<<<<<<< Updated upstream
+    CAN_init();
+
+
+=======
+    can_init();
+    
+>>>>>>> Stashed changes
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     

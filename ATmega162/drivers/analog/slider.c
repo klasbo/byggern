@@ -4,7 +4,9 @@
 #include "slider.h"
 #include "adc.h"
 
-void __attribute__ ((constructor)) slider_init(void){
+void slider_init(void){
+    extern void adc_init(void);
+    adc_init();
     DDRB &= ~ (1<<DDB1);
     DDRB &= ~ (1<<DDB0);
 }    

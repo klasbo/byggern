@@ -8,7 +8,7 @@
 
 
 /** Sets the memory location of the frame buffer
-*   addr is assumed to point to 512 bytes of contiguous memory
+*   addr is assumed to point to 1024 bytes of contiguous memory
 */
 void fbuf_set_addr(volatile void* addr);
 

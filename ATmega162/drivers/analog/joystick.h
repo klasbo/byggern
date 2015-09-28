@@ -17,6 +17,8 @@ typedef enum {
 } JOY_dir_t;
 
 
+void joystick_init(void);
+
 void JOY_set_new_center(void);
 
 JOY_pos_t JOY_get_position(void);

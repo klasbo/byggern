@@ -21,9 +21,6 @@ static FontDescr        font;
 static int8_t           font_horiz_spacing;
 static int8_t           font_vert_spacing;
 
-void __attribute__((constructor)) fbuf_init(void){
-    fbuf_set_addr(ext_ram);
-}
 
 void fbuf_set_addr(volatile void* addr){
     fb_addr = addr;

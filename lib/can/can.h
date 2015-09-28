@@ -12,6 +12,7 @@ struct can_msg_t {
 };
 
 
+void CAN_init(void);
 
 void CAN_send(can_msg_t msg);
 

@@ -5,8 +5,7 @@
 #include <string.h>
 
 
-void __attribute__ ((constructor)) CAN_init(void){
-    
+void CAN_init(void){
     extern void SPI_init(void);
     SPI_init();
 

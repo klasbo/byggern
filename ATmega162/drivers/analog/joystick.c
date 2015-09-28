@@ -8,7 +8,7 @@
 static uint8_t center_x;
 static uint8_t center_y;
 
-void __attribute__ ((constructor)) joystick_init(void){
+void joystick_init(void){
     extern void adc_init(void);
     adc_init();
     JOY_set_new_center();

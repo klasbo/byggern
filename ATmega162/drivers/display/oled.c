@@ -1,6 +1,4 @@
 
-#include "../../config.h"
-
 #include <avr/pgmspace.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -17,7 +15,7 @@ static char             font_start_offset;
 static unsigned char*   font_addr;
 
 
-void __attribute__ ((constructor)) oled_init(void){
+void oled_init(void){
     extern void memory_layout_init(void);
     memory_layout_init();
 
