@@ -11,7 +11,6 @@
 
 void can_test(void){
 
-    mcp2515_reset();
     mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_LOOPBACK);
     
     printf("MCP_CANCTRL: 0x%02x (should be 0x47)\n", mcp2515_read(MCP_CANCTRL));

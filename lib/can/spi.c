@@ -43,7 +43,12 @@ uint8_t spi_read(void){
 
 void spi_chipselect(uint8_t enable){
     enable
-        ? (PORTB &= ~(1<<PINB4))
-        : (PORTB |= (1<<PINB4));
+#if defined(__AVR_ATmega162__)
+        ? (PORTB &= ~(1<<PB4))
+        : (PORTB |= (1<<PB4));
+#elif defined(__AVR_ATmega2560__)
+        ? (PORTB &= ~(1<<PB0))
+        : (PORTB |= (1<<PB0));
+#endif
 }
 
