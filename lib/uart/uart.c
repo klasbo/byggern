@@ -15,8 +15,14 @@ void uart_init(void){
     UCSR0B  |=  (1<<RXEN0)      // receive enable
             |   (1<<TXEN0);     // transmit enable
 
+
+#if defined(__AVR_ATmega162__)
     UCSR0C  |=  (1<<URSEL0)     // use UCSRC on I/O (as opposed to baud rate register high byte (UBBRH))
             |   (3<<UCSZ00);    // char size to 8
+#elif defined(__AVR_ATmega2560__)
+    UCSR0C  |=  (3<<UCSZ00);    // char size to 8
+#endif
+
 
 
     stdout = &uart_stdio;
