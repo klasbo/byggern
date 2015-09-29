@@ -19,11 +19,11 @@ typedef enum {
 
 void joystick_init(void);
 
-void JOY_set_new_center(void);
+void joystick_set_new_center(void);
 
-JOY_pos_t JOY_get_position(void);
+JOY_pos_t joystick_position(void);
 
-JOY_dir_t JOY_get_direction(void);
+JOY_dir_t joystick_direction(void);
 
-int8_t JOY_get_button(void);
+int8_t joystick_button(void);
 

@@ -40,7 +40,7 @@ void sendNewInput(InputController* ic){
         m.length    = 3;
         memcpy(m.data, &cmd, m.length);
 
-        CAN_send(m);
+        can_send(m);
     }
 }
 
@@ -58,43 +58,43 @@ int16_t motorSensitivityMultiplier(uint8_t sensitivity){
 
 
 uint8_t JOY_X_to_motor(uint8_t sensitivity){
-    return ((int16_t)(JOY_get_position().x) * 
+    return ((int16_t)(joystick_position().x) * 
         motorSensitivityMultiplier(sensitivity)) / 100;
 }
 uint8_t JOY_Y_to_motor(uint8_t sensitivity){
-    return ((int16_t)(JOY_get_position().y) * 
+    return ((int16_t)(joystick_position().y) * 
         motorSensitivityMultiplier(sensitivity)) / 100;
 }
 uint8_t SLI_R_to_motor(uint8_t sensitivity){
-    return ((-(int16_t)(SLI_get_slider_position().R) + 128) *
+    return ((-(int16_t)(slider_position().R) + 128) *
         motorSensitivityMultiplier(sensitivity)) / 128;
 }
 uint8_t SLI_L_to_motor(uint8_t sensitivity){
-    return ((-(int16_t)(SLI_get_slider_position().L) + 128) *
+    return ((-(int16_t)(slider_position().L) + 128) *
         motorSensitivityMultiplier(sensitivity)) / 128;
 }
 
 uint8_t JOY_X_to_servo(void){
-    return (90 - ((int16_t)(JOY_get_position().x) * 90) / 100);
+    return (90 - ((int16_t)(joystick_position().x) * 90) / 100);
 }
 uint8_t JOY_Y_to_servo(void){
-    return (90 - ((int16_t)(JOY_get_position().y) * 90) / 100);
+    return (90 - ((int16_t)(joystick_position().y) * 90) / 100);
 }
 uint8_t SLI_R_to_servo(void){
-    return (180 - ((int16_t)(SLI_get_slider_position().R) * 7) / 10);
+    return (180 - ((int16_t)(slider_position().R) * 7) / 10);
 }
 uint8_t SLI_L_to_servo(void){
-    return (180 - ((int16_t)(SLI_get_slider_position().L) * 7) / 10);
+    return (180 - ((int16_t)(slider_position().L) * 7) / 10);
 }
 
 uint8_t JOY_BTN_to_solenoid(void){
-    return JOY_get_button();
+    return joystick_button();
 }
 uint8_t JOY_UP_to_solenoid(void){
-    return JOY_get_position().y > 50;
+    return joystick_position().y > 50;
 }
 uint8_t SLI_BTN_R_to_solenoid(void){
-    return SLI_get_right_button();
+    return slider_right_button();
 }
 
 
@@ -175,7 +175,7 @@ void game_pong(void){
     
     
     while(!quit){        
-        if(SLI_get_left_button()){
+        if(slider_left_button()){
             printf("quitting..\n");
             quit = 1;
         }
@@ -190,7 +190,7 @@ void game_pong(void){
         }        
         
         
-        recvMsg = CAN_recv();
+        recvMsg = can_recv();
         switch(recvMsg.ID){
             case CANID_GameOver:
                 fbuf_set_cursor_to_pixel(20, 20);
@@ -210,11 +210,11 @@ void game_pong(void){
                 }                    
                 
                 while(1){
-                    if(SLI_get_left_button()){
+                    if(slider_left_button()){
                         quit = 1;
                         break;
                     }
-                    if(SLI_get_right_button()){
+                    if(slider_right_button()){
                         renderBackground();
                         lifeTime = 0;
                         break;

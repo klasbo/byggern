@@ -11,18 +11,18 @@ static uint8_t center_y;
 void joystick_init(void){
     extern void adc_init(void);
     adc_init();
-    JOY_set_new_center();
+    joystick_set_new_center();
     DDRB &= ~(1 << DDB2);
 }
 
-void JOY_set_new_center(void){
-    center_x = ADC_read(JOY_X);
-    center_y = ADC_read(JOY_Y);
+void joystick_set_new_center(void){
+    center_x = adc_read(JOY_X);
+    center_y = adc_read(JOY_Y);
 }
 
-JOY_pos_t JOY_get_position(void){
-    int16_t x16 = ((int16_t)ADC_read(JOY_X) - (int16_t)center_x);
-    int16_t y16 = ((int16_t)ADC_read(JOY_Y) - (int16_t)center_y);
+JOY_pos_t joystick_position(void){
+    int16_t x16 = ((int16_t)adc_read(JOY_X) - (int16_t)center_x);
+    int16_t y16 = ((int16_t)adc_read(JOY_Y) - (int16_t)center_y);
     
     return (JOY_pos_t){
         .x =    (x16 > 127)     ? 127   : 
@@ -35,10 +35,10 @@ JOY_pos_t JOY_get_position(void){
 }
 
 
-JOY_dir_t JOY_get_direction(void){
+JOY_dir_t joystick_direction(void){
     static JOY_dir_t previous;
     
-    JOY_pos_t pos = JOY_get_position();
+    JOY_pos_t pos = joystick_position();
             
     /* To prevent "bouncing" we store the previous direction:
         If the position is in the deadzone between NEUTRAL_THRESHOLD and 
@@ -59,6 +59,6 @@ JOY_dir_t JOY_get_direction(void){
     return d;
 }
 
-int8_t JOY_get_button(void){
+int8_t joystick_button(void){
     return !(PINB & (1<<PINB2));
 }

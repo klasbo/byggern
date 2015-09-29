@@ -10,9 +10,9 @@ typedef struct {
 
 void slider_init(void);
 
-SLI_pos_t SLI_get_slider_position(void);
+SLI_pos_t slider_position(void);
 
-int SLI_get_right_button(void);
-int SLI_get_left_button(void);
+int slider_right_button(void);
+int slider_left_button(void);
 
 

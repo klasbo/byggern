@@ -12,8 +12,8 @@ struct can_msg_t {
 };
 
 
-void CAN_init(void);
+void can_init(void);
 
-void CAN_send(can_msg_t msg);
+void can_send(can_msg_t msg);
 
-can_msg_t CAN_recv(void);
+can_msg_t can_recv(void);

@@ -11,17 +11,17 @@ void slider_init(void){
     DDRB &= ~ (1<<DDB0);
 }    
 
-SLI_pos_t SLI_get_slider_position(void){
+SLI_pos_t slider_position(void){
     return (SLI_pos_t){
-        .L = ADC_read(SLIDER_L),
-        .R = ADC_read(SLIDER_R)
+        .L = adc_read(SLIDER_L),
+        .R = adc_read(SLIDER_R)
     };
 }
 
-int SLI_get_right_button(void){
+int slider_right_button(void){
     return !!(PINB & (1<<PINB1));
 }    
 
-int SLI_get_left_button(void){    
+int slider_left_button(void){    
     return !!(PINB & (1<<PINB0));
 }    

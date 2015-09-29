@@ -26,8 +26,8 @@ void can_test(void){
     }
 
     while(1){
-        CAN_send(msg1);
-        msg2 = CAN_recv();
+        can_send(msg1);
+        msg2 = can_recv();
         printf_P(PSTR("msg1: can_msg_t(id:%d, len:%d, data:(%d, %d, %d, %d, %d, %d, %d, %d))\n"),
             msg1.ID,
             msg1.length,

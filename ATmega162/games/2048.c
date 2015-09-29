@@ -536,7 +536,7 @@ void game_2048(){
     GameManager_scoped* gm = new_GameManager();
     
     Direction   inputDirn       = dir_down;
-    JOY_dir_t   joyDirn         = JOY_get_direction();
+    JOY_dir_t   joyDirn         = joystick_direction();
     JOY_dir_t   joyDirnPrev     = joyDirn;
 
     fbuf_set_font(font5x7w());
@@ -547,7 +547,7 @@ void game_2048(){
 
     while(1){
         joyDirnPrev = joyDirn;
-        joyDirn     = JOY_get_direction();
+        joyDirn     = joystick_direction();
         if(joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
             switch(joyDirn){
                 case UP:        inputDirn = dir_up;     break;
@@ -561,10 +561,10 @@ void game_2048(){
 
         if(isGameTerminated(gm)){
             if(gm->over){
-                if(SLI_get_left_button()){  // quit
+                if(slider_left_button()){  // quit
                     goto quit;
                 }
-                if(SLI_get_right_button()){ // restart
+                if(slider_right_button()){ // restart
                     fbuf_clear();
                     writeCurrentUserProfile(gm->userProfile);
                     delete_GameManager(&gm);
@@ -573,10 +573,10 @@ void game_2048(){
                     actuate(gm);
                 }
             } else if(gm->won){
-                if(SLI_get_left_button()){  // quit
+                if(slider_left_button()){  // quit
                     goto quit;
                 }
-                if(SLI_get_right_button()){ // keep playing
+                if(slider_right_button()){ // keep playing
                     gm->keepPlaying = 1;
                     fbuf_clear();
                     drawBackground();
@@ -584,7 +584,7 @@ void game_2048(){
                 }
             }
         } else {
-            if(SLI_get_left_button()){  // quit
+            if(slider_left_button()){  // quit
                 goto quit;
             }
         }

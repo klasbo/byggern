@@ -10,5 +10,5 @@ typedef enum{
     SLIDER_R    = 7
 } ADC_channel;
 
-uint8_t ADC_read(ADC_channel channel);
+uint8_t adc_read(ADC_channel channel);
 

@@ -112,7 +112,7 @@ static void settingsIterator(
         fbuf_render();
 
         joyDirnPrev = joyDirn;
-        joyDirn = JOY_get_direction();
+        joyDirn = joystick_direction();
         if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
             fbuf_set_cursor(1, selected+1);
             fbuf_printf(" ");
@@ -128,14 +128,14 @@ static void settingsIterator(
         }
         // Since opening the item is done with the right button, we need to make 
         //  sure the user has let go before the button can be considered "pressed"
-        if(!SLI_get_right_button()){
+        if(!slider_right_button()){
             SLIRightButtonReleased = 1;
         }
-        if(SLI_get_right_button() && SLIRightButtonReleased){
+        if(slider_right_button() && SLIRightButtonReleased){
             action(selected);
             renderBackground();
         }
-        if(SLI_get_left_button()){
+        if(slider_left_button()){
             return;
         }
     }
@@ -185,7 +185,7 @@ void user_add(void){
                     fbuf_render();
 
                     joyDirnPrev = joyDirn;
-                    joyDirn = JOY_get_direction();
+                    joyDirn = joystick_direction();
                     if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
                         switch(joyDirn){
                             case DOWN:
@@ -214,15 +214,15 @@ void user_add(void){
                             default: break;
                         }
                     }
-                    if(!SLI_get_right_button()){
+                    if(!slider_right_button()){
                         SLIRightButtonReleased = 1;
                     }
-                    if(SLI_get_right_button() && SLIRightButtonReleased){
+                    if(slider_right_button() && SLIRightButtonReleased){
                         writeUserProfile(&newUser, selected);
                         setCurrentUser(selected);
                         return;
                     }
-                    if(SLI_get_left_button()){
+                    if(slider_left_button()){
                         return;
                     }
                 }
@@ -256,7 +256,7 @@ void user_highscores_pong(void){
     renderLeftButton("[Quit]");
     fbuf_render();
     while(1){
-        if(SLI_get_left_button()){
+        if(slider_left_button()){
             return;
         }
     }
@@ -275,7 +275,7 @@ void user_highscores_2048(void){
     renderLeftButton("[Quit]");
     fbuf_render();
     while(1){
-        if(SLI_get_left_button()){
+        if(slider_left_button()){
             return;
         }
     }

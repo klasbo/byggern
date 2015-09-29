@@ -27,25 +27,20 @@ int main(void){
     slider_init();
     oled_init();
     fbuf_set_addr(malloc(1024));
-<<<<<<< Updated upstream
-    CAN_init();
-
-
-=======
     can_init();
-    
->>>>>>> Stashed changes
+
+
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
     
     menunode_t* menu        = menu_open(get_menu());
     menunode_t* prev_menu   = 0;
     
-    JOY_dir_t   dirn        = JOY_get_direction();
+    JOY_dir_t   dirn        = joystick_direction();
     
     
     while(1){
-        if_assignment_modifies(dirn, JOY_get_direction()){
+        if_assignment_modifies(dirn, joystick_direction()){
             switch(dirn){
                 case LEFT:
                     if(menu_close(menu) != get_menu()){
@@ -89,7 +84,7 @@ int main(void){
             fbuf_render();
         }
 
-        if(SLI_get_right_button() && menu->item.fun){
+        if(slider_right_button() && menu->item.fun){
             menu->item.fun();
             prev_menu = NULL;
         }

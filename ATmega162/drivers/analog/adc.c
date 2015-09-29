@@ -10,7 +10,7 @@ void adc_init(void){
     DDRB &= ~(1<<DDB3);
 }    
 
-uint8_t ADC_read(ADC_channel ch){
+uint8_t adc_read(ADC_channel ch){
     *ext_adc = ch;
     while(PINB & (1<<PINB3)){}
     return *ext_adc;

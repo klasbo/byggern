@@ -4,12 +4,8 @@
 #include "spi.h"
 
 
-<<<<<<< Updated upstream
-void SPI_init(void){
-=======
 void spi_init(void){
 #if defined(__AVR_ATmega162__)
->>>>>>> Stashed changes
     DDRB    |=  (1<<DDB7)   // Slave Clock Input as output
             |   (1<<DDB5)   // Master Output/Slave Input as output
             |   (1<<DDB4);  // Slave Select as output
@@ -27,15 +23,15 @@ void spi_init(void){
             |   (1<<MSTR);  // Set SPI to master mode
 }
 
-void SPI_write(uint8_t c){
+void spi_write(uint8_t c){
     SPDR = c;
 
     // Busy-wait until transmission complete (poll interrupt flag)
     while(!(SPSR & (1<<SPIF))){}
 }
 
-uint8_t SPI_read(void){
-    SPI_write(0xff);    // Send dummy data to receive
+uint8_t spi_read(void){
+    spi_write(0xff);    // Send dummy data to receive
 
     // Busy-wait until reception complete (poll interrupt flag)
     while(!(SPSR & (1<<SPIF))){}
@@ -45,7 +41,7 @@ uint8_t SPI_read(void){
 }
 
 
-void SPI_chipselect(uint8_t enable){
+void spi_chipselect(uint8_t enable){
     enable
         ? (PORTB &= ~(1<<PINB4))
         : (PORTB |= (1<<PINB4));

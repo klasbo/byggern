@@ -5,9 +5,9 @@
 #include <string.h>
 
 
-void CAN_init(void){
-    extern void SPI_init(void);
-    SPI_init();
+void can_init(void){
+    extern void spi_init(void);
+    spi_init();
 
     mcp2515_reset();
 
@@ -19,7 +19,7 @@ void CAN_init(void){
     mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_NORMAL);
 }
 
-void CAN_send(can_msg_t msg){
+void can_send(can_msg_t msg){
     while(mcp2515_bit_test(MCP_TXB0CTRL__TEST_TX_REQUEST)){}
 
     mcp2515_write(msg.ID >> 3,  MCP_TXB0_SIDH);
@@ -31,7 +31,7 @@ void CAN_send(can_msg_t msg){
     mcp2515_request_to_send(MCP_RTS_TXB0);
 }
 
-can_msg_t CAN_recv(void){
+can_msg_t can_recv(void){
 
     can_msg_t msg;
 
