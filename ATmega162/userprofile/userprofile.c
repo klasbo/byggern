@@ -11,7 +11,7 @@
 #include "../drivers/display/fonts/font5x7w.h"
 #include "../drivers/display/frame_buffer.h"
 #include "../drivers/display/oled.h"
-#include "../macros.h"
+#include "../../lib/macros.h"
 
 
 static uint8_t      currentUser;

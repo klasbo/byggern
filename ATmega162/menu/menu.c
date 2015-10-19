@@ -5,7 +5,7 @@
 
 extern void sram_test(void);
 extern void analog_test(void);
-extern void can_test(void);
+extern void can_test_loopback(void);
 extern void game_2048(void);
 extern void game_pong(void);
 extern void user_login(void);
@@ -57,13 +57,13 @@ void menu_create(void){
     mainMenu->submenus[1]->submenus[2] = new_menu("Servo",          &controls_servo,                0);
     mainMenu->submenus[1]->submenus[3] = new_menu("Solenoid",       &controls_solenoid,             0);
     mainMenu->submenus[1]->submenus[4] = new_menu("Bluetooth",      &controls_bluetooth,            0);
-    //mainMenu->submenus[2] = new_menu("Games", NULL, 2);
-    //mainMenu->submenus[2]->submenus[0] = new_menu("Pong",           &game_pong,     0);
-    //mainMenu->submenus[2]->submenus[1] = new_menu("2048",           &game_2048,     0);
-    mainMenu->submenus[2] = new_menu("Tests", NULL, 3);
-    mainMenu->submenus[2]->submenus[0] = new_menu("SRAM",           &sram_test,     0);
-    mainMenu->submenus[2]->submenus[1] = new_menu("Analog",         &analog_test,   0);
-    mainMenu->submenus[2]->submenus[2] = new_menu("CAN",            &can_test,      0);
+    mainMenu->submenus[2] = new_menu("Games", NULL, 2);
+    mainMenu->submenus[2]->submenus[0] = new_menu("Pong",           &game_pong,     0);
+    mainMenu->submenus[2]->submenus[1] = new_menu("2048",           &game_2048,     0);
+    //mainMenu->submenus[2] = new_menu("Tests", NULL, 3);
+    //mainMenu->submenus[2]->submenus[0] = new_menu("SRAM",           &sram_test,     0);
+    //mainMenu->submenus[2]->submenus[1] = new_menu("Analog",         &analog_test,   0);
+    //mainMenu->submenus[2]->submenus[2] = new_menu("CAN",            &can_test_loopback,      0);
     
     menu_assign_parents_recursive(mainMenu);
 }

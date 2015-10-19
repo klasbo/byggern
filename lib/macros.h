@@ -17,3 +17,17 @@ int (*square)(int) = lambda(int, (int i){
     returnType _lambda_fn body \
     &_lambda_fn; \
 })
+
+
+// Aliasing-safe reinterpret-cast
+#define union_cast(type, x) \
+    (((union { \
+        typeof(x) a; \
+        type b; \
+    })x).b)
+
+
+
+// For usage with typeof, sizeof, etc
+#define member(structType, memberName) \
+    (((structType*)0)->memberName)

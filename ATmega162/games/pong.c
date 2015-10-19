@@ -36,9 +36,9 @@ void sendNewInput(InputController* ic){
         };
 
         can_msg_t m;
-        m.ID        = CANID_ControlCmd;
+        m.id        = CANID_ControlCmd;
         m.length    = 3;
-        memcpy(m.data, &cmd, m.length);
+        memcpy(&m.data, &cmd, m.length);
 
         can_send(m);
     }
@@ -191,7 +191,7 @@ void game_pong(void){
         
         
         recvMsg = can_recv();
-        switch(recvMsg.ID){
+        switch(recvMsg.id){
             case CANID_GameOver:
                 fbuf_set_cursor_to_pixel(20, 20);
                 fbuf_printf(

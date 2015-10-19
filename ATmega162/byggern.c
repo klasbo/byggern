@@ -14,10 +14,11 @@
 #include "drivers/memory_layout.h"
 #include "menu/menu.h"
 #include "../lib/can/can.h"
+#include "../lib/can/can_test.h"
 #include "../lib/uart/uart.h"
 
 #include "userprofile/userprofile.h"
-#include "macros.h"
+#include "../lib/macros.h"
 
 extern void createDefaultProfile(void);
 
@@ -28,7 +29,7 @@ int main(void){
     oled_init();
     fbuf_set_addr(malloc(1024));
     can_init();
-
+    
 
     // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
     createDefaultProfile();
