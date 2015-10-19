@@ -38,6 +38,20 @@
         </dependencies>
       </framework-data>
     </AsfFrameworkConfig>
+    <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
+    <com_atmel_avrdbg_tool_atmelice>
+      <ToolOptions>
+        <InterfaceProperties>
+          <JtagDbgClock>200000</JtagDbgClock>
+          <IspClock>125000</IspClock>
+        </InterfaceProperties>
+        <InterfaceName>JTAG</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
+      <ToolNumber>J41800035747</ToolNumber>
+      <ToolName>Atmel-ICE</ToolName>
+    </com_atmel_avrdbg_tool_atmelice>
+    <avrtoolinterface>JTAG</avrtoolinterface>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -85,7 +99,7 @@
             <Value>BAUD=38400</Value>
           </ListValues>
         </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
         <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
         <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
         <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
@@ -111,6 +125,10 @@
     <Compile Include="..\lib\can\can_test.c">
       <SubType>compile</SubType>
       <Link>external_deps\can_test.c</Link>
+    </Compile>
+    <Compile Include="..\lib\can\can_test.h">
+      <SubType>compile</SubType>
+      <Link>external_deps\can_test.h</Link>
     </Compile>
     <Compile Include="..\lib\can\can_types.h">
       <SubType>compile</SubType>
@@ -143,8 +161,53 @@
     <Compile Include="ATmega2560.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\ir_led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\ir_led.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\max520.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\max520.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\motor.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\motor.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\adc\adc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\adc\adc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\pwm\pwm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\pwm\pwm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\twi\TWI_Master.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\core\twi\TWI_Master.h">
+      <SubType>compile</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="drivers\" />
+    <Folder Include="drivers\app\" />
+    <Folder Include="drivers\core\" />
+    <Folder Include="drivers\core\adc\" />
+    <Folder Include="drivers\core\pwm\" />
+    <Folder Include="drivers\core\twi\" />
     <Folder Include="external_deps" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
