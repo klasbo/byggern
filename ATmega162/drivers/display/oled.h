@@ -79,8 +79,8 @@ Commands fall into three categories:
 
 #define OLED_DISPLAY_CLOCK                  0xD5
 //  Valid values:
-//      upper byte (osc freq):      0-15
-//      lower byte (divide ratio):  0-15
+//      upper nibble (osc freq):     0-15
+//      lower nibble (divide ratio): 0-15
 //                          Reset: 0x80
 
 #define OLED_PRE_CHARGE_PERIOD              0xD9
@@ -119,7 +119,7 @@ void oled_go_to_page(uint8_t line);
 void oled_go_to_column(uint8_t column);
 
 void oled_write_char(char c);
-void oled_printf(char* fmt, ...);
+void oled_printf(const char* fmt, ...);
 void oled_printf_P(const char* fmt, ...);
 
 
