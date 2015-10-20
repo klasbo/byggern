@@ -13,6 +13,7 @@
 #include "../../ArduinoMega2560/can_types.h"
 #include "../fifoqueue/fifoqueue.h"
 #include "../userprofile/userprofile.h"
+#include "../../lib/macros.h"
 
 
 
@@ -103,9 +104,7 @@ uint8_t SLI_BTN_R_to_solenoid(void){
 static uint16_t     lifeTime;
 
 
-void disableTimerInterrupt(__attribute__((unused)) uint8_t* v){
-    TIMSK  &= ~(1 << OCIE1A);   // Disable interrupt on OCR1A match
-}    
+
 
 
 void game_pong(void){
@@ -147,9 +146,12 @@ void game_pong(void){
     TIMSK   |=  (1 << OCIE1A);  // Enable interrupt on OCR1A match
     OCR1A   =   (F_CPU/256);
     sei();    
-    // scope(exit) hacking
-    __attribute__((cleanup(disableTimerInterrupt))) uint8_t disableTimerInterruptVar;
 
+
+    // Disable timer interrupts on scope exit
+    scope_exit {
+        TIMSK  &= ~(1 << OCIE1A);
+    }
     
     can_msg_t       recvMsg;
     uint8_t         quit                = 0;

@@ -31,3 +31,20 @@ int (*square)(int) = lambda(int, (int i){
 // For usage with typeof, sizeof, etc
 #define member(structType, memberName) \
     (((structType*)0)->memberName)
+
+
+#define concat(x, y) concat_impl(x, y)
+#define concat_impl(x, y) x##y
+
+// Run an expression when the current scope is exited
+/* Example:
+int* arr = malloc(sizeof(int) * 10);
+scope_exit {
+    free(arr);
+}
+*/
+#define scope_exit scope_exit_impl(__COUNTER__)
+#define scope_exit_impl(counter) \
+    auto void concat(se_fn_, counter)(__attribute__((unused)) uint8_t* concat(se_var_, counter)); \
+    __attribute__((cleanup(concat(se_fn_, counter)))) uint8_t concat(se_var_, counter); \
+    void concat(se_fn_, counter)(__attribute__((unused)) uint8_t* concat(se_var_, counter)) 
