@@ -49,9 +49,7 @@ Programming the Arduino with JTAG
 
 This method does not program over USB, but the device still requires power, so the USB connection still has some value. 
 With JTAG, you get full debugging capabilities, but beware that the JTAG uses 4 pins from port F. 
-This means that you may want to use port C instead of port F for communicating with the motor box. 
-
-TODO: verify the above claim
+This means that you can not use port F for communicating with the motor box, so use port C instead. 
 
 If you configure the Arduino to use JTAG, you must re-load the bootloader to be able to program it over USB again. 
 This procedure is explained in the [next chapter](#resetting-the-bootloader). 
