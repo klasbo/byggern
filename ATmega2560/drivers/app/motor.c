@@ -11,20 +11,20 @@
 
 static inline void motor_enable(uint8_t enable){
     enable ? 
-        (PORTF |= (1 << PF5)) :
-        (PORTF &= ~(1 << PF5));        
+        (PORTC |= (1 << PC5)) :
+        (PORTC &= ~(1 << PC5));        
 }
 
 static inline void motor_encoder_output_enable(uint8_t enable){
     enable ? 
-        (PORTF &= ~(1 << PF2)):  
-        (PORTF |= (1 << PF2)) ;
+        (PORTC &= ~(1 << PC2)):  
+        (PORTC |= (1 << PC2)) ;
 }
 
 void motor_encoder_counter_reset(void){
-    PORTF |= (1 << PF3);
+    PORTC &= ~(1 << PC3);
     _delay_us(20);
-    PORTF &= ~(1 << PF3);
+    PORTC |= (1 << PC3);
 }
 
 typedef enum EncoderByte EncoderByte;
@@ -35,8 +35,8 @@ enum EncoderByte {
 
 static inline void motor_encoder_select_byte(EncoderByte e){
     switch(e){
-    case EB_high:   PORTF &= ~(1 << PF4);   break;
-    case EB_low:    PORTF |= (1 << PF4);    break;
+    case EB_high:   PORTC &= ~(1 << PC4);   break;
+    case EB_low:    PORTC |= (1 << PC4);    break;
     default: break;
     }
     _delay_us(20);
@@ -54,11 +54,11 @@ static inline uint8_t reverse_bits(uint8_t x){
 void motor_init(void){
     max520_init(MAX520_TWI_ADDR);
 
-    DDRF    |=  (1<<DDF2)   // Output encoder enable
-            |   (1<<DDF3)   // Counter reset
-            |   (1<<DDF4)   // Encoder LSB/MSB select
-            |   (1<<DDF5)   // Motor enable
-            |   (1<<DDF6);  // Motor direction
+    DDRC    |=  (1<<DDC2)   // Output encoder enable
+            |   (1<<DDC3)   // Counter reset
+            |   (1<<DDC4)   // Encoder LSB/MSB select
+            |   (1<<DDC5)   // Motor enable
+            |   (1<<DDC6);  // Motor direction
             
     DDRK = 0;
     motor_encoder_output_enable(1);
@@ -71,8 +71,8 @@ void motor_init(void){
 
 void motor_direction(MotorDirection dir){
     switch(dir){
-    case left:  PORTF &= ~(1 << PF6);   break;
-    case right: PORTF |= (1 << PF6);    break;
+    case left:  PORTC &= ~(1 << PC6);   break;
+    case right: PORTC |= (1 << PC6);    break;
     default: break;
     }
 }
@@ -94,5 +94,5 @@ int16_t motor_encoder_read(void){
         
     motor_encoder_output_enable(0);
 
-    return (msb << 8) | lsb;
+    return -((msb << 8) | lsb);
 }

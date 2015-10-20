@@ -31,7 +31,6 @@ int main(void){
     pwm_period(20.0f);
     pwm_width(1.5f);
     motor_init();
-    motor_encoder_counter_reset();
     ir_obstruct_threshold(10);
 
     printf("started\n");
