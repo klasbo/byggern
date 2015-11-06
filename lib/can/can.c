@@ -20,7 +20,7 @@ void can_init(void){
     mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_NORMAL);
 }
 
-void can_send(can_msg_t msg){
+void can_sendmsg(can_msg_t msg){
     while(mcp2515_bit_test(MCP_TXB0CTRL__TEST_TX_REQUEST)){}
 
     mcp2515_write(msg.id >> 3,  MCP_TXB0_SIDH);
@@ -32,7 +32,7 @@ void can_send(can_msg_t msg){
     mcp2515_request_to_send(MCP_RTS_TXB0);
 }
 
-can_msg_t can_recv(void){
+can_msg_t can_recvmsg(void){
 
     can_msg_t msg;
 
@@ -62,7 +62,7 @@ void can_printmsg(can_msg_t m){
     if(m.length){
         printf("%d", m.data.bytes[0]);
     }
-    for(uint8_t i = 1; i < 8; i++){
+    for(uint8_t i = 1; i < m.length; i++){
         printf(", %d", m.data.bytes[i]);
     }
     printf("})\n");

@@ -27,10 +27,10 @@ void can_test_loopback(void){
     }
 
     while(1){
-        can_send(msg1);
+        can_sendmsg(msg1);
         can_printmsg(msg1);
 
-        msg2 = can_recv();
+        msg2 = can_recvmsg();
         can_printmsg(msg2);
 
         msg1.data.bytes[0]++;
@@ -41,36 +41,42 @@ void can_test_loopback(void){
 
 
 
+typedef struct EchoRequest EchoRequest;
+struct EchoRequest {
+    uint8_t from;
+    uint8_t num;
+} __attribute__((packed));
+
+typedef struct EchoReply EchoReply;
+struct EchoReply {
+    uint8_t from;
+    uint8_t to;
+    uint8_t num;
+} __attribute__((packed));
+
 void can_test_normal_reply(uint8_t id){
     printf("Listening for echo requests...\n");
 
     mcp2515_bit_modify(MCP_CANCTRL__SET_MODE_NORMAL);
 
     while(1){
-        _delay_ms(10);
+        can_receive( block,
+            EchoRequest, er, {
+                printf("Received EchoRequest(from:%d, num:%d)\n",
+                    er.from, er.num
+                );
 
-        can_msg_t msg = can_recv();
-
-        switch(msg.id){
-        case CANID_EchoRequest:
-            printf("Received EchoRequest: ");
-            can_printmsg(msg);
-            
-            CanMsg_Echo echoRequest = union_cast(CanMsg_Echo, msg.data);
-
-            can_send((can_msg_t){
-                .id = CANID_EchoReply,
-                .length = sizeof(CanMsg_Echo),
-                .data = union_cast(Byte8, ((CanMsg_Echo){
-                    .requestOrigin = echoRequest.requestOrigin,
-                    .msgOrigin = id,
-                    .msgNum = echoRequest.msgNum
-                }))
-            });
-            break;
-        default: 
-            break;
-        }
+                can_send(EchoReply, {
+                    .from   = id,
+                    .to     = er.from,
+                    .num    = er.num
+                });
+            },
+            default, msg, {
+                printf("Received other: ");
+                can_printmsg(msg);
+            }
+        );
     }
 }
 
@@ -87,16 +93,15 @@ void can_test_normal_request(uint8_t id){
         _delay_ms(10);
 
         // Check for replies
-        can_msg_t msg = can_recv();
-
-        switch(msg.id){
-        case CANID_EchoReply:
-            printf("Received EchoReply: ");
-            can_printmsg(msg);
-            break;
-        default:
-            break;
-        }
+        can_receive(nonblock,
+            EchoReply, er, {
+                if(er.to == id){
+                    printf("Received EchoReply(from:%d, to:%d, num:%d)\n",
+                        er.from, er.to, er.num
+                    );
+                }
+            }
+        );
 
         // Send new echo request every n iterations
         iter++;
@@ -105,14 +110,9 @@ void can_test_normal_request(uint8_t id){
             msgNum++;
 
             printf("Sending new echo request...\n");
-            can_send((can_msg_t){
-                .id = CANID_EchoRequest,
-                .length = sizeof(CanMsg_Echo),
-                .data = union_cast(Byte8, ((CanMsg_Echo){
-                    .requestOrigin = id,
-                    .msgOrigin = id,
-                    .msgNum = msgNum
-                }))
+            can_send(EchoRequest, {
+                .from = id,
+                .num = msgNum,
             });
         }
 

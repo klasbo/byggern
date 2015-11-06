@@ -2,7 +2,6 @@
 
 #include "../macros.h"
 
-#define CANID_ControlCmd 50
 
 typedef enum MotorControlType MotorControlType;
 enum MotorControlType {
@@ -10,8 +9,8 @@ enum MotorControlType {
     MC_Position,
 };
 
-typedef struct CanMsg_ControlCmd CanMsg_ControlCmd;
-struct CanMsg_ControlCmd {
+typedef struct Pong_ControlCmd Pong_ControlCmd;
+struct Pong_ControlCmd {
     struct {
         MotorControlType controlType;
         union {
@@ -28,17 +27,8 @@ struct CanMsg_ControlCmd {
 
 
 
-#define CANID_GameOver 51
-// No length or data -> no type
-
-
-
-#define CANID_EchoRequest  216
-#define CANID_EchoReply    217
-
-typedef struct CanMsg_Echo CanMsg_Echo;
-struct CanMsg_Echo {
-    uint8_t requestOrigin;
-    uint8_t msgOrigin;
-    uint8_t msgNum;
+typedef struct Pong_GameOver Pong_GameOver;
+struct Pong_GameOver {
+    uint8_t v;
 } __attribute__((packed));
+

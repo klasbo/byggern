@@ -50,38 +50,32 @@ int main(void){
         
 
         
-        can_msg_t msg = can_recv();
-        switch(msg.id){
-        case CANID_ControlCmd: ;
-            CanMsg_ControlCmd control = union_cast(CanMsg_ControlCmd, msg.data);
-
-            // Servo
-            pwm_width(constrain_int8_t(control.servo, 0.9, 2.1));
+        can_receive(nonblock,
+            Pong_ControlCmd, control, {
+                // Servo
+                pwm_width(constrain_int8_t(control.servo, 0.9, 2.1));
             
-            // Solenoid
-            control.solenoid ?
-                (PORTH |= (1 << PH4)) :
-                (PORTH &= ~(1 << PH4));
+                // Solenoid
+                control.solenoid ?
+                    (PORTH |= (1 << PH4)) :
+                    (PORTH &= ~(1 << PH4));
 
-            // Motor
-            switch(control.motor.controlType){
-            case MC_Speed:
-                motor_direction( (control.motor.speed > 0) ? right : left );
-                motor_speed(abs(control.motor.speed));
-                break;
-            case MC_Position:
+                // Motor
+                switch(control.motor.controlType){
+                case MC_Speed:
+                    motor_direction( (control.motor.speed > 0) ? right : left );
+                    motor_speed(abs(control.motor.speed));
+                    break;
+                case MC_Position:
                 
-                // insert reference tracking controller here...
+                    // insert reference tracking controller here...
                 
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+                }
             }
-            break;
-
-        default:
-            break;
-        }
+        );
 
         
         _delay_ms(10);

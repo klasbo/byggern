@@ -8,9 +8,9 @@
 #include "../drivers/analog/slider.h"
 #include "../drivers/analog/joystick.h"
 #include "../../lib/can/can.h"
+#include "../../lib/can/can_types.h"
 #include "../drivers/display/frame_buffer.h"
 #include "../drivers/display/fonts/font5x7w.h"
-#include "../../ArduinoMega2560/can_types.h"
 #include "../fifoqueue/fifoqueue.h"
 #include "../userprofile/userprofile.h"
 #include "../../lib/macros.h"
@@ -30,18 +30,12 @@ struct InputController {
 
 void sendNewInput(InputController* ic){
     if(!ic->useBluetooth){
-        ControlCmd cmd = (ControlCmd){
-            .servoPos   = ic->servoInputFcn(),
-            .motorSpeed = ic->motorInputFcn(ic->motorSensitivity),
-            .solenoid   = ic->solenoidInputFcn(),
-        };
-
-        can_msg_t m;
-        m.id        = CANID_ControlCmd;
-        m.length    = 3;
-        memcpy(&m.data, &cmd, m.length);
-
-        can_send(m);
+        can_send(Pong_ControlCmd, {
+            .motor.controlType = MC_Speed,
+            .motor.speed    = ic->motorInputFcn(ic->motorSensitivity),
+            .servo          = ic->servoInputFcn(),
+            .solenoid       = ic->solenoidInputFcn(),
+        });
     }
 }
 
@@ -76,16 +70,16 @@ uint8_t SLI_L_to_motor(uint8_t sensitivity){
 }
 
 uint8_t JOY_X_to_servo(void){
-    return (90 - ((int16_t)(joystick_position().x) * 90) / 100);
+    return joystick_position().x;
 }
 uint8_t JOY_Y_to_servo(void){
-    return (90 - ((int16_t)(joystick_position().y) * 90) / 100);
+    return joystick_position().y;
 }
 uint8_t SLI_R_to_servo(void){
-    return (180 - ((int16_t)(slider_position().R) * 7) / 10);
+    return slider_position().R - 128;
 }
 uint8_t SLI_L_to_servo(void){
-    return (180 - ((int16_t)(slider_position().L) * 7) / 10);
+    return slider_position().L - 128;
 }
 
 uint8_t JOY_BTN_to_solenoid(void){
@@ -153,7 +147,6 @@ void game_pong(void){
         TIMSK  &= ~(1 << OCIE1A);
     }
     
-    can_msg_t       recvMsg;
     uint8_t         quit                = 0;
     lifeTime                            = 0;
     uint16_t        prevLifeTime        = -1;
@@ -192,9 +185,8 @@ void game_pong(void){
         }        
         
         
-        recvMsg = can_recv();
-        switch(recvMsg.id){
-            case CANID_GameOver:
+        can_receive(nonblock,
+            Pong_GameOver, __attribute__((unused)) gameOver, {
                 fbuf_set_cursor_to_pixel(20, 20);
                 fbuf_printf(
                     "Game over!\n"
@@ -222,10 +214,8 @@ void game_pong(void){
                         break;
                     }
                 }
-                break;
-            default:
-                break;
-        }
+            }
+        );
     }
     
     return;
