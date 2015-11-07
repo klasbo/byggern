@@ -61,20 +61,15 @@ void deleteUserProfile(uint8_t user){
     }
 }
 
-
-
-static void renderUsernamesBackground(const char* title){
-    fbuf_printf("%s\n", title);
-    for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
-        if(i == getCurrentUser()){
-            fbuf_printf("-");
-        }
-        fbuf_set_cursor(2, i+1);
-        fbuf_printf("%s\n", getUserProfile(i).username);
+void deleteAllUserProfiles(void){
+    createDefaultProfile();
+    for(uint8_t i = 1; i < MAX_NUM_USERS; i++){
+        deleteUserProfile(i);
     }
-    fbuf_printf("[Quit]      [Sel]");
-    fbuf_render();
 }
+
+
+
 
 static void renderLeftButton(const char* title){
     fbuf_set_cursor_to_pixel(0, DISP_HEIGHT-8);
@@ -89,6 +84,29 @@ static void renderRightButton(const char* title){
     fbuf_printf("[%s]", title);
 }
 
+static void renderButtons(const char* left, const char* right){
+    fbuf_clear_area(0, DISP_WIDTH, DISP_HEIGHT - 8, DISP_HEIGHT);
+    if(left){
+        renderLeftButton(left);
+    }
+    if(right){
+        renderRightButton(right);
+    }
+}
+
+static void renderUsernamesBackground(const char* title){
+    fbuf_printf("%s\n", title);
+    for(uint8_t i = 0; i < MAX_NUM_USERS; i++){
+        if(i == getCurrentUser()){
+            fbuf_printf("-");
+        }
+        fbuf_set_cursor(2, i+1);
+        fbuf_printf("%s\n", getUserProfile(i).username);
+        printf("%s\n", getUserProfile(i).username);
+    }
+    renderButtons("Quit", "Sel");
+    fbuf_render();
+}
 
 static void settingsIterator(
     void    (*renderBackground)(void),
@@ -100,7 +118,6 @@ static void settingsIterator(
     fbuf_clear();
     renderBackground();
 
-    JOY_dir_t joyDirnPrev   = NEUTRAL;
     JOY_dir_t joyDirn       = NEUTRAL;
     
     uint8_t selected = 0;
@@ -111,9 +128,7 @@ static void settingsIterator(
         fbuf_printf(">");
         fbuf_render();
 
-        joyDirnPrev = joyDirn;
-        joyDirn = joystick_direction();
-        if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
+        if_assignment_modifies(joyDirn, joystick_direction()){
             fbuf_set_cursor(1, selected+1);
             fbuf_printf(" ");
             switch(joyDirn){
@@ -133,6 +148,7 @@ static void settingsIterator(
         }
         if(slider_right_button() && SLIRightButtonReleased){
             action(selected);
+            fbuf_clear();
             renderBackground();
         }
         if(slider_left_button()){
@@ -160,8 +176,7 @@ void user_add(void){
         MAX_NUM_USERS,
         lambda(void, (uint8_t selected){
             if(getUserProfile(selected).username[0] == 0){ // if this user does not exist
-                renderLeftButton("Back");
-                renderRightButton("Ok");
+                renderButtons("Back", "Ok");
                 fbuf_render();
                 UserProfile newUser = getUserProfile(selected);
 
@@ -177,7 +192,6 @@ void user_add(void){
                 uint8_t     SLIRightButtonReleased  = 0;
                 char        c                       = 'a';
                 uint8_t     pos                     = 0;
-                JOY_dir_t   joyDirnPrev             = NEUTRAL;
                 JOY_dir_t   joyDirn                 = NEUTRAL;
                 while(1){
                     newUser.username[pos] = c;
@@ -185,9 +199,7 @@ void user_add(void){
                     fbuf_printf("%-8s", newUser.username);
                     fbuf_render();
 
-                    joyDirnPrev = joyDirn;
-                    joyDirn = joystick_direction();
-                    if (joyDirn != joyDirnPrev && joyDirn != NEUTRAL){
+                    if_assignment_modifies(joyDirn, joystick_direction()){
                         switch(joyDirn){
                             case DOWN:
                                 if(c < 'z'){
@@ -254,7 +266,7 @@ void user_highscores_pong(void){
             fbuf_printf("%-8s: %5d\n", p.username, p.game_pong.bestScore);
         }
     }
-    renderLeftButton("[Quit]");
+    renderButtons("Quit", NULL);
     fbuf_render();
     while(1){
         if(slider_left_button()){
@@ -273,7 +285,7 @@ void user_highscores_2048(void){
             fbuf_printf("%-8s: %5lu\n", p.username, p.game_2048.bestScore);
         }
     }
-    renderLeftButton("[Quit]");
+    renderButtons("Quit", NULL);
     fbuf_render();
     while(1){
         if(slider_left_button()){

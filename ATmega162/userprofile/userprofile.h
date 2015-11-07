@@ -45,6 +45,7 @@ UserProfile getCurrentUserProfile(void);
 void writeUserProfile(UserProfile* p, uint8_t user);
 void writeCurrentUserProfile(UserProfile* p);
 void deleteUserProfile(uint8_t user);
+void deleteAllUserProfiles(void);
 
 // Menu functions
 void user_delete(void);
