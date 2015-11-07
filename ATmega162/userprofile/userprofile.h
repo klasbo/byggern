@@ -22,6 +22,7 @@ struct UserProfile {
     char        username[MAX_USERNAME_LENGTH];
     struct {
         uint32_t    bestScore;
+        uint32_t    currentScore;
         uint8_t     grid[4][4];
     } game_2048;
     struct {

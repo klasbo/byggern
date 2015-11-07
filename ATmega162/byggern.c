@@ -20,7 +20,7 @@
 #include "userprofile/userprofile.h"
 #include "../lib/macros.h"
 
-extern void createDefaultProfile(void);
+
 
 int main(void){    
     uart_init();
@@ -29,10 +29,8 @@ int main(void){
     oled_init();
     fbuf_set_addr(malloc(1024));
     can_init();
-    
 
-    // Hack: The option to "Preserve EEPROM" doesn't actually preserve EEPROM
-    createDefaultProfile();
+    printf("started\n");
     
     menunode_t* menu        = menu_open(get_menu());
     menunode_t* prev_menu   = 0;

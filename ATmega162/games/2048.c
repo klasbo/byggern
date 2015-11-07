@@ -11,6 +11,7 @@
 #include "../drivers/display/fonts/font5x7w.h"
 #include "../drivers/display/fonts/font_2048.h"
 #include "../userprofile/userprofile.h"
+#include "../../lib/macros.h"
 
 
 #define SIZE            4
@@ -258,6 +259,16 @@ void setBestScore(UserProfile* const p, uint32_t const score){
     p->game_2048.bestScore = score;
 }
 
+uint32_t getCurrentScore(UserProfile const * const p){
+    return p->game_2048.currentScore;
+}
+
+void setCurrentScore(UserProfile* const p, uint32_t const score){
+    p->game_2048.currentScore = score;
+}
+
+
+
 void saveGameState(UserProfile* const p, Grid const * const g){
     for(int8_t x = 0; x < SIZE; x++){
         for(int8_t y = 0; y < SIZE; y++){
@@ -309,7 +320,9 @@ GameManager* new_GameManager(){
         }
     }
 
-    if(!foundStoredGame){
+    if(foundStoredGame){
+        gm->score = gm->userProfile->game_2048.currentScore;
+    } else {
         addStartTiles(gm);
     }
     
@@ -403,7 +416,8 @@ void move(GameManager* const gm, Direction const d){
 }
 
 void actuate(GameManager* const gm){
-    
+    setCurrentScore(gm->userProfile, gm->score);
+
     if(getBestScore(gm->userProfile) < gm->score){
         setBestScore(gm->userProfile, gm->score);
     }
@@ -545,6 +559,12 @@ void game_2048(){
     drawBackground();
     actuate(gm);
 
+    scope_exit {
+        fbuf_clear();
+        fbuf_render();
+        writeCurrentUserProfile(gm->userProfile);
+    }
+
     while(1){
         joyDirnPrev = joyDirn;
         joyDirn     = joystick_direction();
@@ -562,7 +582,7 @@ void game_2048(){
         if(isGameTerminated(gm)){
             if(gm->over){
                 if(slider_left_button()){  // quit
-                    goto quit;
+                    return;
                 }
                 if(slider_right_button()){ // restart
                     fbuf_clear();
@@ -574,7 +594,7 @@ void game_2048(){
                 }
             } else if(gm->won){
                 if(slider_left_button()){  // quit
-                    goto quit;
+                    return;
                 }
                 if(slider_right_button()){ // keep playing
                     gm->keepPlaying = 1;
@@ -585,14 +605,10 @@ void game_2048(){
             }
         } else {
             if(slider_left_button()){  // quit
-                goto quit;
+                return;
             }
         }
     }
-quit:
-    fbuf_clear();
-    fbuf_render();
-    writeCurrentUserProfile(gm->userProfile);
     
     return;
 }
