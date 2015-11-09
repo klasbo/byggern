@@ -109,6 +109,7 @@
             <Value>libm</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
+        <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,-u,vfprintf -lprintf_flt -lm</avrgcc.linker.miscellaneous.LinkerFlags>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
       </AvrGcc>
     </ToolchainSettings>
@@ -164,6 +165,15 @@
     <Compile Include="config.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="control\pid.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="control\pid.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="control\timer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\app\ir_led.c">
       <SubType>compile</SubType>
     </Compile>
@@ -180,6 +190,18 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\app\motor.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\servo.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\servo.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\solenoid.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\app\solenoid.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\core\adc\adc.c">
@@ -202,6 +224,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="control\" />
     <Folder Include="drivers\" />
     <Folder Include="drivers\app\" />
     <Folder Include="drivers\core\" />

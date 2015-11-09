@@ -5,7 +5,7 @@
 static uint16_t obstruct_threshold = 10;
 
 
-void ir_obstruct_threshold(uint16_t t){
+void ir_obstructThreshold(uint16_t t){
     obstruct_threshold = t;
 }
 
