@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 #include "../drivers/analog/slider.h"
 #include "../drivers/analog/joystick.h"
@@ -11,6 +13,7 @@
 #include "../../lib/can/can_types.h"
 #include "../drivers/display/frame_buffer.h"
 #include "../drivers/display/fonts/font5x7w.h"
+#include "../drivers/display/oled.h"
 #include "../fifoqueue/fifoqueue.h"
 #include "../userprofile/userprofile.h"
 #include "../../lib/macros.h"
@@ -20,22 +23,39 @@
 
 typedef struct InputController InputController;
 struct InputController {
-    uint8_t (*motorInputFcn)(uint8_t sensitivity);
-    uint8_t motorSensitivity;
-    uint8_t (*servoInputFcn)(void);
-    uint8_t (*solenoidInputFcn)(void);
-    uint8_t useBluetooth;
+    MotorControlType    motorControlType;
+    uint8_t             motorSensitivity;
+    int8_t              (*motorSpeedInputFcn)(uint8_t sensitivity);
+    uint8_t             (*motorPositionInputFcn)(void);
+
+    uint8_t             servoReversed;
+    int8_t              (*servoInputFcn)(uint8_t reversed);
+
+    uint8_t             (*solenoidInputFcn)(void);
+
+    uint8_t             useBluetooth;
 };
 
 
 void sendNewInput(InputController* ic){
     if(!ic->useBluetooth){
-        can_send(Pong_ControlCmd, {
-            .motor.controlType = MC_Speed,
-            .motor.speed    = ic->motorInputFcn(ic->motorSensitivity),
-            .servo          = ic->servoInputFcn(),
-            .solenoid       = ic->solenoidInputFcn(),
-        });
+        Pong_ControlCmd cmd;
+        memset(&cmd, 0, sizeof(Pong_ControlCmd));
+
+        cmd.motor.controlType  = ic->motorControlType;
+        switch(ic->motorControlType){
+        case MC_Speed:
+            cmd.motor.speed = ic->motorSpeedInputFcn(ic->motorSensitivity);
+            break;
+        case MC_Position:
+            cmd.motor.position = ic->motorPositionInputFcn();
+            break;
+        }
+
+        cmd.servo              = ic->servoInputFcn(ic->servoReversed);
+        cmd.solenoid           = ic->solenoidInputFcn();
+
+        can_send(Pong_ControlCmd, cmd);
     }
 }
 
@@ -52,34 +72,40 @@ int16_t motorSensitivityMultiplier(uint8_t sensitivity){
 }
 
 
-uint8_t JOY_X_to_motor(uint8_t sensitivity){
+int8_t JOY_X_to_motor(uint8_t sensitivity){
     return ((int16_t)(joystick_position().x) * 
         motorSensitivityMultiplier(sensitivity)) / 100;
 }
-uint8_t JOY_Y_to_motor(uint8_t sensitivity){
+int8_t JOY_Y_to_motor(uint8_t sensitivity){
     return ((int16_t)(joystick_position().y) * 
         motorSensitivityMultiplier(sensitivity)) / 100;
 }
-uint8_t SLI_R_to_motor(uint8_t sensitivity){
-    return ((-(int16_t)(slider_position().R) + 128) *
-        motorSensitivityMultiplier(sensitivity)) / 128;
+uint8_t SLI_R_to_motor(void){
+    return slider_position().R;
 }
-uint8_t SLI_L_to_motor(uint8_t sensitivity){
-    return ((-(int16_t)(slider_position().L) + 128) *
-        motorSensitivityMultiplier(sensitivity)) / 128;
+uint8_t SLI_L_to_motor(void){
+    return slider_position().L;
 }
 
-uint8_t JOY_X_to_servo(void){
-    return joystick_position().x;
+int8_t JOY_X_to_servo(uint8_t reversed){
+    int8_t v = joystick_position().x;
+    v = (v == -128) ? -127 : v;
+    return reversed ? v*-1 : v;
 }
-uint8_t JOY_Y_to_servo(void){
-    return joystick_position().y;
+int8_t JOY_Y_to_servo(uint8_t reversed){
+    int8_t v = joystick_position().y;
+    v = (v == -128) ? -127 : v;
+    return reversed ? v*-1 : v;
 }
-uint8_t SLI_R_to_servo(void){
-    return slider_position().R - 128;
+int8_t SLI_R_to_servo(uint8_t reversed){
+    return reversed ? 
+        128 - slider_position().R :
+        slider_position().R - 128;
 }
-uint8_t SLI_L_to_servo(void){
-    return slider_position().L - 128;
+int8_t SLI_L_to_servo(uint8_t reversed){
+    return reversed ? 
+        128 - slider_position().L :
+        slider_position().L - 128;
 }
 
 uint8_t JOY_BTN_to_solenoid(void){
@@ -107,14 +133,26 @@ void game_pong(void){
 
     
     InputController ic = {
-        .motorInputFcn =
-            p.game_pong.motorInputType == CONTROL_JOY_X ?   JOY_X_to_motor  :
-            p.game_pong.motorInputType == CONTROL_JOY_Y ?   JOY_Y_to_motor  :
-            p.game_pong.motorInputType == CONTROL_SLI_R ?   SLI_R_to_motor  :
-            p.game_pong.motorInputType == CONTROL_SLI_L ?   SLI_L_to_motor  :
-                                                            JOY_X_to_motor  ,
+        .motorControlType = 
+            p.game_pong.motorInputType == CONTROL_JOY_X ?   MC_Speed        :
+            p.game_pong.motorInputType == CONTROL_JOY_Y ?   MC_Speed        :
+            p.game_pong.motorInputType == CONTROL_SLI_R ?   MC_Position     :
+            p.game_pong.motorInputType == CONTROL_SLI_L ?   MC_Position     :
+                                                            MC_Speed        ,
 
         .motorSensitivity = p.game_pong.motorSensitivity ?: 3,
+
+        .motorSpeedInputFcn =
+            p.game_pong.motorInputType == CONTROL_JOY_X ?   JOY_X_to_motor  :
+            p.game_pong.motorInputType == CONTROL_JOY_Y ?   JOY_Y_to_motor  :
+                                                            NULL            ,
+
+        .motorPositionInputFcn =                                                   
+            p.game_pong.motorInputType == CONTROL_SLI_R ?   SLI_R_to_motor  :
+            p.game_pong.motorInputType == CONTROL_SLI_L ?   SLI_L_to_motor  :
+                                                            NULL            ,
+
+        .servoReversed = p.game_pong.servoReversed,
 
         .servoInputFcn =
             p.game_pong.servoInputType == CONTROL_JOY_X ?   JOY_X_to_servo  :
@@ -147,7 +185,6 @@ void game_pong(void){
         TIMSK  &= ~(1 << OCIE1A);
     }
     
-    uint8_t         quit                = 0;
     lifeTime                            = 0;
     uint16_t        prevLifeTime        = -1;
 
@@ -169,10 +206,9 @@ void game_pong(void){
     renderBackground();
     
     
-    while(!quit){        
+    while(1){   
         if(slider_left_button()){
-            printf("quitting..\n");
-            quit = 1;
+            return;
         }
         
         sendNewInput(&ic);
@@ -191,22 +227,25 @@ void game_pong(void){
                 fbuf_printf(
                     "Game over!\n"
                 );
-                fbuf_set_cursor(0, 6);
-                fbuf_printf(
-                    "Play again?\n"
-                    "[No]       [Yes]"
+                fbuf_set_cursor_to_pixel(0, DISP_HEIGHT-16);
+                fbuf_printf("Play again?");
+                fbuf_set_cursor_to_pixel(0, DISP_HEIGHT-8);
+                fbuf_printf("[No]");
+                fbuf_set_cursor_to_pixel(
+                    DISP_WIDTH  - fbuf_get_current_font_config().width * 5,
+                    DISP_HEIGHT - 8
                 );
+                fbuf_printf("[Yes]");
                 fbuf_render();
                 
                 if(lifeTime > p.game_pong.bestScore){
                     p.game_pong.bestScore = lifeTime;
                     writeCurrentUserProfile(&p);
-                }                    
+                }
                 
                 while(1){
                     if(slider_left_button()){
-                        quit = 1;
-                        break;
+                        return;
                     }
                     if(slider_right_button()){
                         renderBackground();
@@ -216,9 +255,9 @@ void game_pong(void){
                 }
             }
         );
+
+        _delay_ms(10);
     }
-    
-    return;
 }
 
 ISR(TIMER1_COMPA_vect){

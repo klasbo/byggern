@@ -28,6 +28,7 @@ struct UserProfile {
         uint8_t     motorInputType;
         uint8_t     motorSensitivity;
         uint8_t     servoInputType;
+        uint8_t     servoReversed;
         uint8_t     solenoidInputType;
         uint8_t     useBluetooth;
         uint16_t    bestScore;
@@ -49,6 +50,6 @@ void user_delete(void);
 void user_add(void);
 void user_login(void);
 void controls_motor(void);
-void controls_motor_sensitivity(void);
+void controls_motorSensitivity(void);
 void controls_servo(void);
 void controls_solenoid(void);

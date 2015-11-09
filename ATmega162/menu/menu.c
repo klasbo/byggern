@@ -14,8 +14,9 @@ extern void user_delete(void);
 extern void user_highscores_pong(void);
 extern void user_highscores_2048(void);
 extern void controls_motor(void);
-extern void controls_motor_sensitivity(void);
+extern void controls_motorSensitivity(void);
 extern void controls_servo(void);
+extern void controls_servoReversed(void);
 extern void controls_solenoid(void);
 extern void controls_bluetooth(void);
 
@@ -51,12 +52,13 @@ void menu_create(void){
     mainMenu->submenus[0]->submenus[3] = new_menu("Highscores",     NULL, 2);
     mainMenu->submenus[0]->submenus[3]->submenus[0] = new_menu("Pong", &user_highscores_pong, 0);
     mainMenu->submenus[0]->submenus[3]->submenus[1] = new_menu("2048", &user_highscores_2048, 0);
-    mainMenu->submenus[1] = new_menu("Controls", NULL, 5);
+    mainMenu->submenus[1] = new_menu("Controls", NULL, 6);
     mainMenu->submenus[1]->submenus[0] = new_menu("Motor",          &controls_motor,                0);
-    mainMenu->submenus[1]->submenus[1] = new_menu("Mtr Sens",       &controls_motor_sensitivity,    0);
+    mainMenu->submenus[1]->submenus[1] = new_menu("Mtr Sens",       &controls_motorSensitivity,     0);
     mainMenu->submenus[1]->submenus[2] = new_menu("Servo",          &controls_servo,                0);
-    mainMenu->submenus[1]->submenus[3] = new_menu("Solenoid",       &controls_solenoid,             0);
-    mainMenu->submenus[1]->submenus[4] = new_menu("Bluetooth",      &controls_bluetooth,            0);
+    mainMenu->submenus[1]->submenus[3] = new_menu("Reverse Servo",  &controls_servoReversed,        0);
+    mainMenu->submenus[1]->submenus[4] = new_menu("Solenoid",       &controls_solenoid,             0);
+    mainMenu->submenus[1]->submenus[5] = new_menu("Bluetooth",      &controls_bluetooth,            0);
     mainMenu->submenus[2] = new_menu("Games", NULL, 2);
     mainMenu->submenus[2]->submenus[0] = new_menu("Pong",           &game_pong,     0);
     mainMenu->submenus[2]->submenus[1] = new_menu("2048",           &game_2048,     0);

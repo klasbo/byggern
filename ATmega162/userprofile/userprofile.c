@@ -169,6 +169,7 @@ void user_add(void){
                 newUser.game_pong.motorInputType    = CONTROL_JOY_X;
                 newUser.game_pong.motorSensitivity  = 3;
                 newUser.game_pong.servoInputType    = CONTROL_SLI_R;
+                newUser.game_pong.servoReversed     = 0;
                 newUser.game_pong.solenoidInputType = CONTROL_JOY_UP;
                 newUser.game_pong.useBluetooth      = 0;
 
@@ -283,25 +284,30 @@ void user_highscores_2048(void){
 
 
 
+void renderControlsBackground(char * text, uint8_t selected){
+    fbuf_printf(text);
+
+    if(selected != 0){
+        fbuf_set_cursor(0, selected);
+        fbuf_printf("-");
+    }
+            
+    renderLeftButton("Quit");
+    renderRightButton("Sel");
+}
+
+
 void controls_motor(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_printf("Motor\n");
-            fbuf_printf(
+            renderControlsBackground(
+                "Motor\n"
                 "  Joy X\n"
                 "  Joy Y\n"
                 "  Sli R\n"
-                "  Sli L"
+                "  Sli L",
+                getCurrentUserProfile().game_pong.motorInputType
             );
-            
-            uint8_t currentControl = getCurrentUserProfile().game_pong.motorInputType;
-            if(currentControl != 0){
-                fbuf_set_cursor(0, currentControl);
-                fbuf_printf("-");
-            }
-            
-            renderLeftButton("Quit");
-            renderRightButton("Sel");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -317,26 +323,18 @@ void controls_motor(void){
     );
 }
 
-void controls_motor_sensitivity(void){
+void controls_motorSensitivity(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_printf("Sensitivity\n");
-            fbuf_printf(
-              "  1\n"
-              "  2\n"
-              "  3\n"
-              "  4\n"
-              "  5\n"
+            renderControlsBackground(
+                "Sensitivity\n"
+                "  1\n"
+                "  2\n"
+                "  3\n"
+                "  4\n"
+                "  5\n",
+                getCurrentUserProfile().game_pong.motorSensitivity
             );
-
-            uint8_t currentValue = getCurrentUserProfile().game_pong.motorSensitivity;
-            if(currentValue != 0){
-                fbuf_set_cursor(0, currentValue);
-                fbuf_printf("-");
-            }
-            
-            renderLeftButton("Quit");
-            renderRightButton("Sel");
         }),
         5,
         lambda(void, (uint8_t val){
@@ -350,22 +348,14 @@ void controls_motor_sensitivity(void){
 void controls_servo(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_printf("Servo\n");
-            fbuf_printf(
+            renderControlsBackground(
+                "Servo\n"
                 "  Joy X\n"
                 "  Joy Y\n"
                 "  Sli R\n"
-                "  Sli L"
+                "  Sli L",
+                getCurrentUserProfile().game_pong.servoInputType
             );
-            
-            uint8_t currentControl = getCurrentUserProfile().game_pong.servoInputType;
-            if(currentControl != 0){
-                fbuf_set_cursor(0, currentControl);
-                fbuf_printf("-");
-            }
-            
-            renderLeftButton("Quit");
-            renderRightButton("Sel");
         }),
         4,
         lambda(void, (uint8_t selected){
@@ -381,24 +371,35 @@ void controls_servo(void){
     );
 }
 
+void controls_servoReversed(void){
+    settingsIterator(
+        lambda(void, (void){
+            renderControlsBackground(
+                "Servo dir\n"
+                "  Normal\n"
+                "  Reversed\n",
+                getCurrentUserProfile().game_pong.servoReversed
+            );
+        }),
+        2,
+        lambda(void, (uint8_t val){
+            UserProfile p = getCurrentUserProfile();
+            p.game_pong.servoReversed = val;
+            writeCurrentUserProfile(&p);
+        })
+    );
+}
+
 void controls_solenoid(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_printf("Solenoid\n");
-            fbuf_printf(
+            renderControlsBackground(
+                "Solenoid\n"    
                 "  Joy Btn\n"
                 "  Joy Up\n"
-                "  Sli Btn R"
+                "  Sli Btn R",
+                getCurrentUserProfile().game_pong.solenoidInputType
             );
-            
-            uint8_t currentControl = getCurrentUserProfile().game_pong.solenoidInputType;
-            if(currentControl != 0){
-                fbuf_set_cursor(0, currentControl);
-                fbuf_printf("-");
-            }
-            
-            renderLeftButton("Quit");
-            renderRightButton("Sel");
         }),
         3,
         lambda(void, (uint8_t selected){
@@ -416,20 +417,12 @@ void controls_solenoid(void){
 void controls_bluetooth(void){
     settingsIterator(
         lambda(void, (void){
-            fbuf_printf("Bluetooth\n");
-            fbuf_printf(
-            "  Off\n"
-            "  On\n"
+            renderControlsBackground(
+                "Bluetooth\n"            
+                "  Off\n"
+                "  On\n",
+                getCurrentUserProfile().game_pong.useBluetooth
             );
-            
-            uint8_t currentControl = getCurrentUserProfile().game_pong.useBluetooth;
-            if(currentControl != 0){
-                fbuf_set_cursor(0, currentControl);
-                fbuf_printf("-");
-            }
-            
-            renderLeftButton("Quit");
-            renderRightButton("Sel");
         }),
         2,
         lambda(void, (uint8_t val){
