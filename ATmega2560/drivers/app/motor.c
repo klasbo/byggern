@@ -100,8 +100,6 @@ void motor_direction(MotorDirection dir){
     }
 }
 
-uint8_t buf[2] = {0};
-
 void motor_speed(uint8_t speed){
     max520_write(MAX520_CHANNEL_MOTOR, speed);
 }
