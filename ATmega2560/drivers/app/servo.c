@@ -11,6 +11,7 @@ void servo_init(float _min, float _max){
     pwm_period(20.0f);
     min = _min;
     max = _max;
+    servo_write(0);
 }
 
 void servo_write(int8_t val){
